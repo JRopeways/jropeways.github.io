@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J OS 2 Najimi</title>
+    <link rel="stylesheet" href="styles.css">
+    <script defer src="scripts.js"></script>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="login-screen">
+        <div class="login-container">
+            <h1>Welcome to J OS 2 Najimi</h1>
+            <input type="password" id="password" placeholder="Enter Password">
+            <button onclick="login()">Login</button>
+            <p id="login-error"></p>
+        </div>
+    </div>
+
+    <!-- Desktop Environment -->
+    <div id="desktop" style="display: none;">
+        <!-- Top Bar -->
+        <div id="top-bar">
+            <div id="quick-settings">⚙️</div>
+            <div id="app-menu" onclick="toggleAppMenu()">📂</div>
+        </div>
+
+        <!-- App Menu -->
+        <div id="app-menu-panel" style="display: none;">
+            <button onclick="launchApp('file-manager')">File Manager</button>
+            <button onclick="launchApp('settings')">Settings</button>
+            <button onclick="launchApp('notes')">Notes</button>
+            <button onclick="launchApp('clock')">Clock</button>
+            <button onclick="launchApp('weather')">Weather</button>
+            <button onclick="launchApp('maps')">Maps</button>
+        </div>
+
+        <!-- Desktop Background -->
+        <div id="desktop-background">
+            <h2>Desktop</h2>
+        </div>
+
+        <!-- Dock -->
+        <div id="dock"></div>
+
+        <!-- Applications -->
+        <div id="file-manager" class="app" style="display: none;">
+            <h1>File Manager</h1>
+            <button onclick="closeApp('file-manager')">Close</button>
+        </div>
+
+        <div id="settings" class="app" style="display: none;">
+            <h1>Settings</h1>
+            <div id="about">
+                <h2>About</h2>
+                <p>Name: J OS 2 Najimi</p>
+            </div>
+            <button onclick="closeApp('settings')">Close</button>
+        </div>
+
+        <div id="notes" class="app" style="display: none;">
+            <h1>Notes</h1>
+            <textarea placeholder="Write your notes here..."></textarea>
+            <button onclick="closeApp('notes')">Close</button>
+        </div>
+
+        <div id="clock" class="app" style="display: none;">
+            <h1>Clock</h1>
+            <p id="current-time"></p>
+            <button onclick="closeApp('clock')">Close</button>
+        </div>
+
+        <div id="weather" class="app" style="display: none;">
+            <h1>Weather</h1>
+            <p>Weather information will be displayed here.</p>
+            <button onclick="closeApp('weather')">Close</button>
+        </div>
+
+        <div id="maps" class="app" style="display: none;">
+            <h1>Maps</h1>
+            <p>Map functionality will go here.</p>
+            <button onclick="closeApp('maps')">Close</button>
+        </div>
+    </div>
+</body>
+</html>
