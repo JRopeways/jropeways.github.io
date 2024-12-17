@@ -83,5 +83,30 @@
             <button onclick="closeApp('maps')">Close</button>
         </div>
     </div>
+
+    <script>
+        function login() {
+            const password = document.getElementById('password').value;
+            if (password === 'najimi') {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('desktop').style.display = 'block';
+            } else {
+                document.getElementById('login-error').textContent = 'Incorrect password. Try again.';
+            }
+        }
+
+        function toggleAppMenu() {
+            const appMenu = document.getElementById('app-menu-panel');
+            appMenu.style.display = appMenu.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function launchApp(appId) {
+            document.getElementById(appId).style.display = 'block';
+        }
+
+        function closeApp(appId) {
+            document.getElementById(appId).style.display = 'none';
+        }
+    </script>
 </body>
 </html>
