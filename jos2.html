@@ -269,35 +269,54 @@
         }
 
         function closeApp(appId) {
-            const app = document.getElementById(appId);
-            app.style.display = 'none';
+    const app = document.getElementById(appId);
+    app.style.display = 'none';
+
+    // Remove app from dock
+    const dockItem = document.querySelector(`#dock .dock-item[data-app="${appId}"]`);
+    if (dockItem) dockItem.remove();
+}
+
+function makeDraggable(app) {
+    let isDragging = false;
+    let offsetX, offsetY;
+
+    const header = app.querySelector('h1');
+
+    header.style.display = 'flex';
+    header.style.justifyContent = 'space-between';
+    header.style.alignItems = 'center';
+
+    // Add close button to the header
+    if (!header.querySelector('.close-btn')) {
+        const closeButton = document.createElement('button');
+        closeButton.textContent = 'X';
+        closeButton.className = 'close-btn';
+        closeButton.style.margin = '0 10px';
+        closeButton.style.cursor = 'pointer';
+        closeButton.onclick = () => closeApp(app.id);
+        header.appendChild(closeButton);
+    }
+
+    header.addEventListener('mousedown', (e) => {
+        if (e.target.className === 'close-btn') return; // Avoid dragging when clicking close button
+        isDragging = true;
+        offsetX = e.clientX - app.offsetLeft;
+        offsetY = e.clientY - app.offsetTop;
+        app.style.zIndex = 1000;
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+            app.style.left = `${e.clientX - offsetX}px`;
+            app.style.top = `${e.clientY - offsetY}px`;
         }
+    });
 
-        function makeDraggable(app) {
-            let isDragging = false;
-            let offsetX, offsetY;
-
-            const header = app.querySelector('h1');
-
-            header.addEventListener('mousedown', (e) => {
-                isDragging = true;
-                offsetX = e.clientX - app.offsetLeft;
-                offsetY = e.clientY - app.offsetTop;
-                app.style.zIndex = 1000;
-            });
-
-            document.addEventListener('mousemove', (e) => {
-                if (isDragging) {
-                    app.style.left = `${e.clientX - offsetX}px`;
-                    app.style.top = `${e.clientY - offsetY}px`;
-                }
-            });
-
-            document.addEventListener('mouseup', () => {
-                isDragging = false;
-            });
-        }
-
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
+}
         function updateTime() {
             const now = new Date();
             document.getElementById('current-time').textContent = now.toLocaleTimeString();
