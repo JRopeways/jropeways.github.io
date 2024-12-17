@@ -227,3 +227,16 @@
                 dockItem.textContent = appId;
                 dockItem.dataset.app = appId;
                 dockItem.onclick = () => {
+                    const targetApp = document.getElementById(appId);
+                    targetApp.style.display = 'block';
+                };
+                dock.appendChild(dockItem);
+            }
+        }
+
+        function closeApp(appId) {
+            const app = document.getElementById(appId);
+            app.style.display = 'none';
+
+            // Remove app from dock if closed
+            const dockItem = document.query
