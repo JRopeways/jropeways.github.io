@@ -119,6 +119,40 @@
         #app-menu-panel button:hover {
             background-color: #f0f0f0;
         }
+
+        .login-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #3a3a3a;
+            color: white;
+        }
+
+        .login-container input {
+            margin: 10px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .login-container button {
+            padding: 10px 20px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .login-container button:hover {
+            background-color: #45a049;
+        }
+
+        .login-container p {
+            color: red;
+        }
     </style>
 </head>
 <body>
@@ -237,7 +271,39 @@
         function closeApp(appId) {
             const app = document.getElementById(appId);
             app.style.display = 'none';
+        }
 
-            // Remove app from dock if closed
-            const dockItem = document.query
-        </script>
+        function makeDraggable(app) {
+            let isDragging = false;
+            let offsetX, offsetY;
+
+            const header = app.querySelector('h1');
+
+            header.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                offsetX = e.clientX - app.offsetLeft;
+                offsetY = e.clientY - app.offsetTop;
+                app.style.zIndex = 1000;
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    app.style.left = `${e.clientX - offsetX}px`;
+                    app.style.top = `${e.clientY - offsetY}px`;
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+        }
+
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleTimeString();
+        }
+
+        setInterval(updateTime, 1000);
+    </script>
+</body>
+</html>
