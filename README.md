@@ -2,4 +2,8 @@
 
 Not much at the moment, just messing around with html
 
-Check out my site bc I make macOS apps
+Making my website, jropeways.github.io just to have my own website tbh so yeah
+
+Check out my other repo: github.com/JRopeways/handy-macOS-apps
+
+arch users = goofballs
