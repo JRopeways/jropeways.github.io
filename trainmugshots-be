@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>‎Belgium, Train Mug Shots by JRopeways</title>
+    
+    <link href="./trainmugshots_files/css2" rel="stylesheet">
+
+    <link rel="icon" type="image/png" href="https://jropeways.github.io/favicon-tms.png">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <style>
+        body 
+        {
+            background-image: url('https://jropeways.github.io/tms-wallpaper.png');
+			background-size: cover;
+            font-family: 'Alan Sans', sans-serif;
+        }
+        .content
+        {
+            background-color: Cornsilk;
+			opacity: 0.67;
+            border-radius: 25px;
+            padding: 20px;
+            margin: 20px;
+        }
+        .navbar
+        {
+          
+        }
+        img
+        {
+            max-width: 100%;
+            height: auto;
+            border-radius: 25px;
+        }
+        h1
+        {
+            text-align: center;
+        }
+        h2
+        {
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="content">
+        <b><h1 style="border:2px solid FireBrick; border-radius:25px;">Belgium</h1></b>
+		<h2>Train Mug Shots By JRopeways</h2>
+
+		<h3>currently under construction</h3>
+    <p>Photos will go here</p>
+
+    <a href="https://jropeways.github.io/"><button type="button">Back to JRopeways Home</button></a>
+
+		<p>Background image: Welsh Flag Inspired Wallpaper by JRopeways</p>
+		<h6>It would be much appreciated if you don't steal my photos</h6>
+        <p><small><small><small>Shwmae Awen</small></small></small></p>        
+    </div>
+</body>
+</html>
