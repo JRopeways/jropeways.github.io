@@ -12,31 +12,44 @@ body
 {
   width: 250px;
   height: 250px;
-  background: #f9eae6; /* Main clock color */
+  background: #f9eae6; /* Inner clock color */
   border-radius: 50%;
   position: relative;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  
-  /* --- Scallop Effect added below --- */
-  /* Create 24 repeating circular gradients, making the border look scalloped */
-  -webkit-mask-image: repeating-radial-gradient(
-    circle at 50% 50%, 
-    transparent 0, 
-    transparent 85%, 
-    black 86%, 
-    black 100%
-  );
-  mask-image: repeating-radial-gradient(
-    circle at 50% 50%, 
-    transparent 0, 
-    transparent 85%, 
-    black 86%, 
-    black 100%
-  );
-  -webkit-mask-size: 10% 10%; /* Controls the size and number of "scallops" */
-  mask-size: 10% 10%;
-  -webkit-mask-position: 0 0;
-  mask-position: 0 0;
+  /* The overflow: hidden; is crucial to hide the parts of the hands outside the circle */
+  overflow: hidden;
+}
+
+.markers {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* We use the markers div to apply the scalloped edge */
+}
+
+.markers::before {
+  content: '';
+  position: absolute;
+  top: -10px; /* Adjust vertical position to show the scallops */
+  left: -10px; /* Adjust horizontal position */
+  right: -10px;
+  bottom: -10px;
+  border-radius: 50%;
+  border: 10px solid #b79950; /* Outer ring color (gold) */
+  box-sizing: border-box;
+  /* This radial gradient creates the wave/scallop pattern */
+  background: 
+    repeating-radial-gradient(
+      circle at center, 
+      #f9eae6 0%,  /* Inner color */
+      #f9eae6 10%, /* Inner color */
+      transparent 10%, 
+      transparent 15% /* Scallop size/spacing */
+    );
+  background-size: 10% 10%; /* Controls the density of the scallops */
+  opacity: 0.9;
 }
 
 .hand
