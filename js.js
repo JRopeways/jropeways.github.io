@@ -1,4 +1,6 @@
 
+console.log("Script connected");
+
 const hourHand = document.querySelector('.hand.hour');
 const minuteHand = document.querySelector('.hand.minute');
 
