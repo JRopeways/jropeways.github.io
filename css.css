@@ -12,10 +12,31 @@ body
 {
   width: 250px;
   height: 250px;
-  background: #f9eae6;
+  background: #f9eae6; /* Main clock color */
   border-radius: 50%;
   position: relative;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); 
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  
+  /* --- Scallop Effect added below --- */
+  /* Create 24 repeating circular gradients, making the border look scalloped */
+  -webkit-mask-image: repeating-radial-gradient(
+    circle at 50% 50%, 
+    transparent 0, 
+    transparent 85%, 
+    black 86%, 
+    black 100%
+  );
+  mask-image: repeating-radial-gradient(
+    circle at 50% 50%, 
+    transparent 0, 
+    transparent 85%, 
+    black 86%, 
+    black 100%
+  );
+  -webkit-mask-size: 10% 10%; /* Controls the size and number of "scallops" */
+  mask-size: 10% 10%;
+  -webkit-mask-position: 0 0;
+  mask-position: 0 0;
 }
 
 .hand
@@ -26,6 +47,7 @@ body
   transform-origin: bottom center;
   transform: translateX(-50%);
   border-radius: 5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); /* Add subtle depth */
 }
 
 .hand.hour
