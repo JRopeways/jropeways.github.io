@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>J's Kindle Clock</title>
+</head>
+<body style="margin:0; background:black; overflow:hidden; display:flex; justify-content:center; align-items:center; height:100vh;">
+
+<canvas id="clock" style="width:100vw; height:100vh; display:block;"></canvas>
+
+<script>
+const canvas = document.getElementById("clock");
+const ctx = canvas.getContext("2d");
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
+function drawClock() {
+  const now = new Date();
+  const w = canvas.width;
+  const h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  const cx = w / 2;
+  const cy = h / 2;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.strokeStyle = "white";
+  ctx.fillStyle = "white";
+  ctx.shadowColor = "white";
+  ctx.shadowBlur = 8;
+  ctx.lineWidth = 2;
+
+  // --- Rectangular tick marks ---
+  for (let i = 0; i < 60; i++) {
+    const angle = (i * Math.PI) / 30;
+    const x = Math.sin(angle);
+    const y = -Math.cos(angle);
+
+    const scale = 1 / Math.max(Math.abs(x) / (w / 2), Math.abs(y) / (h / 2));
+    const outerX = x * scale;
+    const outerY = y * scale;
+    const innerScale = (i % 5 === 0) ? 0.9 : 0.95;
+    const innerX = outerX * innerScale;
+    const innerY = outerY * innerScale;
+
+    ctx.beginPath();
+    ctx.moveTo(innerX, innerY);
+    ctx.lineTo(outerX, outerY);
+    ctx.stroke();
+  }
+
+  // --- Numbers ---
+  ctx.font = `${Math.min(w, h) * 0.12}px sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  const numPositions = {
+    "12": {x: 0, y: -h * 0.4},
+    "3": {x: w * 0.42, y: 0},
+    "6": {x: 0, y: h * 0.4},
+    "9": {x: -w * 0.42, y: 0}
+  };
+  for (const n in numPositions) {
+    const p = numPositions[n];
+    ctx.fillText(n, p.x, p.y);
+  }
+
+  // --- Date (MON 10) ---
+  const opts = {weekday: "short", day: "numeric"};
+  const dateStr = now.toLocaleDateString("en-GB", opts).toUpperCase().replace(",", "");
+  ctx.font = `${Math.min(w, h) * 0.05}px sans-serif`;
+  ctx.fillText(dateStr, w * 0.18, 0);
+
+  // --- Hands ---
+  const hour = now.getHours() % 12;
+  const minute = now.getMinutes();
+  const second = now.getSeconds();
+
+  function rectMap(angle, lengthFactor) {
+    const x = Math.sin(angle);
+    const y = -Math.cos(angle);
+    const scale = lengthFactor / Math.max(Math.abs(x) / (w / 2), Math.abs(y) / (h / 2));
+    return {x: x * scale, y: y * scale};
+  }
+
+  // Hour hand
+  ctx.lineWidth = Math.min(w, h) * 0.015;
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  let end = rectMap((Math.PI / 6) * (hour + minute / 60), 0.5);
+  ctx.lineTo(end.x, end.y);
+  ctx.stroke();
+
+  // Minute hand
+  ctx.lineWidth = Math.min(w, h) * 0.008;
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  end = rectMap((Math.PI / 30) * (minute + second / 60), 0.75);
+  ctx.lineTo(end.x, end.y);
+  ctx.stroke();
+
+  // Second hand
+  ctx.lineWidth = Math.min(w, h) * 0.004;
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  end = rectMap(second * Math.PI / 30, 0.9);
+  ctx.lineTo(end.x, end.y);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+setInterval(drawClock, 1000);
+drawClock();
+</script>
+
+</body>
+</html>
