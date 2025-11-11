@@ -6,33 +6,36 @@
 <title>Liquid Glass Text Box</title>
 
 <style>
-  /* Full-screen background image */
   body {
     margin: 0;
     height: 100vh;
     background: url('tms-wallpaper.png') center/cover no-repeat fixed;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     font-family: "Segoe UI", sans-serif;
+    overflow: hidden;
   }
 
-  /* Liquid glass effect */
   .glass {
-    position: relative;
+    position: absolute; /* Make it movable */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(2px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.8);
     border-radius: 2rem;
-    box-shadow: 
-      0 8px 32px rgba(31, 38, 135, 0.2), 
+    box-shadow:
+      0 8px 32px rgba(31, 38, 135, 0.2),
       inset 0 4px 20px rgba(255, 255, 255, 0.3);
     width: 60%;
     max-width: 700px;
     padding: 2rem 3rem;
     color: white;
     text-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    overflow: hidden;
+    cursor: grab; /* visual cue */
+  }
+
+  .glass:active {
+    cursor: grabbing;
   }
 
   .glass::after {
@@ -45,7 +48,7 @@
     background: rgba(255, 255, 255, 0.1);
     border-radius: 2rem;
     backdrop-filter: blur(1px);
-    box-shadow: 
+    box-shadow:
       inset -10px -8px 0px -11px rgba(255, 255, 255, 1),
       inset 0px -9px 0px -8px rgba(255, 255, 255, 1);
     opacity: 0.6;
@@ -67,12 +70,36 @@
 </head>
 
 <body>
-  <div class="glass">
+  <div class="glass" id="draggable">
     <h1>Liquid glASS Text Box</h1>
     <p>
       Shwmae! This is Liquid Glass coded in HTML and CSS, because why not. <code>body</code> Awen.
     </p>
   </div>
+
+  <script>
+    const dragEl = document.getElementById("draggable");
+
+    let offsetX = 0, offsetY = 0, isDragging = false;
+
+    dragEl.addEventListener("mousedown", (e) => {
+      isDragging = true;
+      offsetX = e.clientX - dragEl.offsetLeft;
+      offsetY = e.clientY - dragEl.offsetTop;
+      dragEl.style.cursor = "grabbing";
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      if (!isDragging) return;
+      dragEl.style.left = e.clientX - offsetX + "px";
+      dragEl.style.top = e.clientY - offsetY + "px";
+      dragEl.style.transform = "none"; // Disable initial centering transform
+    });
+
+    document.addEventListener("mouseup", () => {
+      isDragging = false;
+      dragEl.style.cursor = "grab";
+    });
+  </script>
 </body>
 </html>
-
