@@ -40,10 +40,33 @@
        body
         {
             cursor: url("https://jropeways.github.io/nagicursor.jpg"), default !important;
+            margin: 0
+            overflow-x: hidden;
         }
         .customCursor
         {
             cursor: url("https://jropeways.github.io/nagicursor.jpg"), default !important;
+        }
+    /* This part is handcopied from AI, this is because I am self teaching myself CSS and aren't profficient yet*/
+        .image-section
+        {
+         height: 100vh; /* Full screen height */
+        width: 100%;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        }
+        .image-section img 
+        {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0; /* Start hidden */
+        transition: opacity 0.8s ease; /* Smooth fade */
+        }
+        .image-section img.active {
+        opacity: 1;
         }
     </style>
 </head>
@@ -53,6 +76,45 @@
       <h1>Nagisa Shiota</h1>
 
       <a href="https://www.anime-colors.com/assassination-classroom-series/nagisa-shiota"><button type="button">Nagisa Colour pallette!</button></a>
+
+        <section class="image-section">
+        <img src="https://jropeways.github.io/Nagisa.jpg">
+        </section>
+        
+        <section class="image-section">
+        <img src="https://jropeways.github.io/nagisa (3).jpg">
+        </section>
+
+        <section class="image-section">
+        <img src="https://jropeways.github.io/nagisaoui.jpg">
+        </section>
+        
+
+<!----- No go zone -------------------------------------------------------- -->
+        <script>
+        // Select all images
+        const images = document.querySelectorAll('.image-section img');
+    
+        // Create observer
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+    
+                // If image is near center
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                } else {
+                    entry.target.classList.remove('active');
+                }
+    
+            });
+        }, {
+            threshold: 0.6  // 60% of image must be visible
+        });
+    
+        // Observe each image
+        images.forEach(image => observer.observe(image));
+    </script>
+
     </div>
 </body>
 </html>
