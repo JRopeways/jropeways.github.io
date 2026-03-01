@@ -40,7 +40,7 @@
        body
         {
             cursor: url("https://jropeways.github.io/nagicursor.jpg"), default !important;
-            margin: 0
+            margin: 0;
             overflow-x: hidden;
         }
         .customCursor
@@ -48,25 +48,27 @@
             cursor: url("https://jropeways.github.io/nagicursor.jpg"), default !important;
         }
     /* This part is handcopied from AI, this is because I am self teaching myself CSS and aren't profficient yet*/
-        .image-section
-        {
-         height: 100vh; /* Full screen height */
-        width: 100%;
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        .image-section {
+            height: 100vh;          /* Full screen height */
+            width: 100%;
+            position: relative;     /* Allows absolute positioning inside */
+            overflow: hidden;       /* Prevents overflow issues */
         }
-        .image-section img 
-        {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        opacity: 0; /* Start hidden */
-        transition: opacity 0.8s ease; /* Smooth fade */
+        
+        /* Stack all images */
+        .image-section img {
+            position: absolute;     /* Stack images on top of each other */
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        
+            opacity: 0;             /* Start invisible */
+            transition: opacity 1s ease-in-out;  /* Smooth crossfade */
         }
+        
+        /* Visible image */
         .image-section img.active {
-        opacity: 1;
+            opacity: 1;
         }
     </style>
 </head>
@@ -81,45 +83,37 @@
             <p><small>All credits go to the creators, apologies I can't name you individually</small></p>
 <br>
         <section class="image-section">
-        <img src="https://jropeways.github.io/Nagisa.jpg">
-        </section>
-        
-        <section class="image-section">
-        <img src="https://jropeways.github.io/nagisa (3).jpg">
-        </section>
-
-        <section class="image-section">
-        <img src="https://jropeways.github.io/nagisaoui.jpg">
-        </section>
-
-        <section class="image-section">
-        <img src="https://jropeways.github.io/poster thing.jpg">
+            <img src="https://jropeways.github.io/Nagisa.jpg">
+            <img src="https://jropeways.github.io/nagisa (3).jpg">
+            <img src="https://jropeways.github.io/nagisaoui.jpg">
+            <img src="https://jropeways.github.io/poster thing.jpg">
         </section>
         
 
 <!----- No go zone -------------------------------------------------------- -->
         <script>
-        // Select all images
         const images = document.querySelectorAll('.image-section img');
-    
-        // Create observer
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-    
-                // If image is near center
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('active');
-                } else {
-                    entry.target.classList.remove('active');
-                }
-    
-            });
-        }, {
-            threshold: 0.6  // 60% of image must be visible
-        });
-    
-        // Observe each image
-        images.forEach(image => observer.observe(image));
+
+let currentIndex = 0;
+
+// Show first image immediately
+images[currentIndex].classList.add('active');
+
+window.addEventListener('scroll', () => {
+
+    const scrollPosition = window.scrollY;
+    const windowHeight = window.innerHeight;
+
+    // Calculate which image should show
+    const newIndex = Math.floor(scrollPosition / windowHeight);
+
+    if (newIndex !== currentIndex && newIndex < images.length) {
+        images[currentIndex].classList.remove('active');
+        images[newIndex].classList.add('active');
+        currentIndex = newIndex;
+    }
+
+});
     </script>
 
     </div>
