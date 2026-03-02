@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Nagisa Shiota page (JRopeways website 3)</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="nagifavicon.jpg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            background-color: #39456B;
+            font-family: 'Lato', sans-serif;
+        }
+
+        .content {
+            background-color: #ABD0F3;
+            border-radius: 25px;
+            padding: 20px;
+            margin: 40px;
+            text-align: center;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 25px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        body {
+            cursor: url("https://jropeways.github.io/nagicursor.jpg"), default !important;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        .customCursor {
+            cursor: url("https://jropeways.github.io/nagicursor.jpg"), default !important;
+        }
+
+        /* This part is handcopied from AI, this is because I am self teaching myself CSS and aren't proficient yet */
+
+        .image-section {
+            height: 100vh; /* Full screen height */
+            width: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-section img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0; /* Start hidden */
+            transition: opacity 0.8s ease; /* Smooth fade */
+        }
+
+        .image-section img.active {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="content">
+
+        <p style="background-image: url('nagisa-shiota.png');"></p>
+
+        <h1>Nagisa Shiota</h1>
+
+        <a href="https://www.anime-colors.com/assassination-classroom-series/nagisa-shiota">
+            <button type="button">Nagisa Colour pallette!</button>
+        </a>
+
+        <p>Some pics of Nagisa Shiota</p>
+
+        <p>
+            <small>All credits go to the creators, apologies I can't name you individually</small>
+        </p>
+
+        <br>
+
+        <section class="image-section">
+            <img src="https://jropeways.github.io/Nagisa.jpg">
+        </section>
+
+        <section class="image-section">
+            <img src="https://jropeways.github.io/nagisa (3).jpg">
+        </section>
+
+        <section class="image-section">
+            <img src="https://jropeways.github.io/nagisaoui.jpg">
+        </section>
+
+        <section class="image-section">
+            <img src="https://jropeways.github.io/poster thing.jpg">
+        </section>
+
+        <section class="image-section">
+            <img src="https://jropeways.github.io/nagisa-shiota.png">
+        </section>
+
+        <!----- No go zone -------------------------------------------------------- -->
+
+        <script>
+            // Select all images
+            const images = document.querySelectorAll('.image-section img');
+
+            // Create observer
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    // If image is near center
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                    } else {
+                        entry.target.classList.remove('active');
+                    }
+                });
+            }, {
+                threshold: 0.6 // 60% of image must be visible
+            });
+
+            // Observe each image
+            images.forEach(image => observer.observe(image));
+        </script>
+
+    </div>
+</body>
+</html>
