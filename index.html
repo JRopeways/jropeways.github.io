@@ -1,101 +1,144 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>‎JRopeways Website 3</title>
-    
+
     <link href="https://fonts.googleapis.com/css2?family=Alan+Sans:wght@300..900&display=swap" rel="stylesheet">
 
     <link rel="icon" type="image/png" href="favicon.png">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+
     <style>
-        body 
-        {
+        body {
             background-color: FireBrick;
             font-family: 'Alan Sans', sans-serif;
         }
-        .content
-        {
+
+        .content {
             background-color: Cornsilk;
             border-radius: 25px;
             padding: 20px;
             margin: 40px;
             text-align: center;
         }
-        .center
-        {
+
+        .center {
             display: flex;
             justify-content: center;
             align-items: center;
         }
-        .textbox
-        {
-          max-width: 800px;
-          margin: 0 auto; /* Top/bottom margin 0, left/right margin auto */
+
+        .textbox {
+            max-width: 800px;
+            margin: 0 auto;
+            /* Top/bottom margin 0, left/right margin auto */
         }
-        img
-        {
+
+        img {
             max-width: 100%;
             height: auto;
             border-radius: 25px;
         }
-        h1
-        {
+
+        h1 {
             text-align: center;
         }
-        h2
-        {
+
+        h2 {
             text-align: center;
+        }
+
+        dialog {
+            border: 5px solid firebrick;
+            border-radius: 25px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 500px;
         }
     </style>
 </head>
 
 <body>
     <div class="center">
-    <div class="content">
-        <b><h1 style="border:2px solid FireBrick; border-radius:25px;">Welcome to my Site!</h1></b>
+        <div class="content">
+            <b>
+                <h1 style="border:2px solid FireBrick; border-radius:25px;">Welcome to my Site</h1>
+            </b>
 
-        <div class="textbox">
-        <h2>JRopeways Site 3</h2>
-        <h2>Projects⬇️</h2>
+            <div class="textbox">
+                
+                <!--
+                <button command="show-modal" commandfor="my-dialog">a quick notice about this site</button>
 
-        <h3>Train Mug Shots: a website featuring mug shots of trains</h3>
-        <a href="https://jropeways.github.io/trainmugshots">TrainMugShots by JRopeways</a>
-        
-        <h3>Some handy macOS apps</h3>
-        <a href="https://github.com/JRopeways/handy-macOS-apps">GitHub Repo: Handy MacOS Apps</a>
+                
+                <dialog id="my-dialog">
+                    <p>This site may not be as fancy as some of the others on Neocities, but sometimes it is nice to
+                        have some simplicity <a href="https://jropeways.github.io/trainmugshots">TrainMugShots by
+                            JRopeways</a>
+                    </p>
+                    <button commandfor="my-dialog" command="close">Close</button>
+                </dialog>
+                -->
 
-        <h3>A fullscreen clock that can be viewed in the browser. Mainly for use on Kindles to use them as Clocks (Why not)</h3>
-        <a href="https://jropeways.github.io/Clock">J's Fullscreen Kindle Clock</a>
-        
-        <h3>Simple weather website (from a youtube tutorial) that you can use to check the weather on your kindle</h3>
-        <a href="https://jropeways.github.io/kweather">J's Kindle Weather </a><p>Simply open site on your kindle's web browser and enjoy!</p>
+                <h2>JRopeways Site 3</h2>
+                <h2>Projects⬇️</h2>
 
-        <h3>Random Buttons</h3>
-        <a href="https://jropeways.github.io/liquid-ass"><button type="button">This is a button</button></a><a href="https://jropeways.github.io/nagisa-shiota"><button type="button">This is another button</button></a>
+                <h3>Train Mug Shots: a website featuring mug shots of trains</h3>
+                <a href="https://jropeways.github.io/trainmugshots">TrainMugShots by JRopeways</a>
 
-    </div> 
-        <br>       
-    <div class="content">
+                <h3>Some handy macOS apps</h3>
+                <a href="https://github.com/JRopeways/handy-macOS-apps">GitHub Repo: Handy MacOS Apps</a>
 
-        <h2>About this site (and me)</h2>
-        <p>This is the third version of my first website, it used to be just messing around with HTML but now updated with better internal CSS</p>
-        
-        <p>I use Windows 11, macOS 11 and some debian based Linux Distros (Ubuntu, Raspberry Pi OS)</p>
-        <p><small>Dw, I don't and won't use Arch btw, I have a life</small></p>
-        
-        <p>I can code in Python and C# and have tried out some Applescript, HTML and CSS,</p>
-        <p>and like trainspotting and photography (though I'm no professional in either of those!)</p>
-        
-        <h2>This is a nice pic of a Class 387</h2>
+                <h3>A fullscreen clock that can be viewed in the browser. Mainly for use on Kindles to use them as
+                    Clocks (Why not)</h3>
+                <a href="https://jropeways.github.io/Clock">J's Fullscreen Kindle Clock</a>
+
+                <h3>Simple weather website (from a youtube tutorial) that you can use to check the weather on your
+                    kindle</h3>
+                <a href="https://jropeways.github.io/kweather">J's Kindle Weather </a>
+                <p>Simply open site on your kindle's web browser and enjoy!</p>
+
+                <h3>Random Buttons</h3>
+                <a href="https://jropeways.github.io/liquid-ass"><button type="button">This is a button</button></a>
+                
+                <button command="show-modal" commandfor="my-dialog">This is another button</button>
+                <dialog id="my-dialog">
+                    <p>ooo super secret <a href="https://jropeways.github.io/nagisa-shiota">this is not a link</a>
+                    </p>
+                    <button commandfor="my-dialog" command="close">Close</button>
+                </dialog>
+
+            </div>
         </div>
-        <img src="Electrostar background.JPG" alt="I took this pic btw"/>
+    </div>
 
-        <div class="textbox">
-        <p>Thanks for checking out my website! Have a nice day</p>
-        
-        <p>This font is Alan Sans from google fonts</p>
-    </div></div></div>
+    <div class="center">
+        <div class="content">
+            <div class="textbox">
+                <h2>About this site (and me)</h2>
+                <p>This is the third version of my first website, it used to be just messing around with HTML but now
+                    updated with better internal CSS</p>
+
+                <p>I use Windows 11, macOS 11 and some debian based Linux Distros (Ubuntu, Raspberry Pi OS)</p>
+                <p><small>Dw, I don't and won't use Arch btw, I have a life</small></p>
+
+                <p>I can code in Python and C# and have tried out some Applescript, HTML and CSS,</p>
+                <p>and like trainspotting and photography (though I'm no professional in either of those!)</p>
+
+                <h2>This is a nice pic of a Class 387</h2>
+            </div>
+            <img src="Electrostar background.JPG" alt="I took this pic btw" />
+
+            <div class="textbox">
+                <p>Thanks for checking out my website! Have a nice day</p>
+
+                <p>This font is Alan Sans from google fonts</p>
+            </div>
+        </div>
+    </div>
 </body>
+
 </html>
