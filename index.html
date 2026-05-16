@@ -22,7 +22,7 @@
             padding: 0px;
             margin: 25px;
             width: 99%;
-            height: 99%;
+            min-height: calc(100vh - 50px);
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -46,7 +46,8 @@
         .center {
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
+            min-height: 100vh;
         }
 
         .textbox {
@@ -122,6 +123,29 @@
             opacity: 0.8;
         }
 
+        .app-grid {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+        }
+
+        /* br tags used as spacers during development are harmless in flexbox */
+        .app-grid br {
+            display: none;
+        }
+
+        /* Switch to vertical (column) layout on portrait screens or narrow viewports */
+        @media (orientation: portrait), (max-width: 600px) {
+            .app-grid {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
         iframe {
             width: 100%;
             max-width: 100%;
@@ -153,14 +177,17 @@
                     <rect width="640" height="640" fill="#8B1111" opacity="0.18" />
                     <text x="320" y="370" text-anchor="middle" font-family="sans-serif" font-size="200"
                         font-weight="700" fill="#FFF8DC" opacity="0.05" letter-spacing="-6">J OS</text>
-                    <text x="320" y="310" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="400"
+                    <text x="320" y="590" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="400"
                         fill="#FFF8DC" opacity="0.13" letter-spacing="14">J O S 1</text>
                 </g>
             </svg>
 
             <div class="home-ui">
+
                 <p>J OS 1 is currently under construction. Contact me if you find any bugs and they will be fixed in the
                     next release</p>
+
+                <div class="app-grid">
 
                 <!------About app------>
                 <button commandfor="my-dialog" command="show-modal">
@@ -215,7 +242,8 @@
                             <h5>Made by JRopeways</h5>
                             <h3>Changelog: 1.5</h3>
                             <p>Added the Ski Map Maker app<br>
-                            <p>Fixed the width of the apps and the location of the close button</p>
+                            <p>Fixed the width of the app windows and location of the close button<br>
+                            <p>Fixed the app layout. The apps now show horizontally on largr screens and vertically on portrait screens</p>
                             <h3>Changelog: 1.4</h3>
                             <p>Changed the trainmugshots icon from that vibe coded shi to the actual favicon</p>
                             <h3>Changelog: 1.3</h3>
@@ -506,6 +534,7 @@
                     </div>
                 </dialog>
 
+                </div><!-- end .app-grid -->
 
             </div>
         </div>
