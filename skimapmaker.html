@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ski Map Maker</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#1c2b3a; --ink-mid:#3d5a73; --ink-light:#7a9ab5;
+  --cloud:#f7f9fc; --mist:#edf2f7; --frost:#dce8f2; --sky:#c8dff0;
+  --accent:#3b82c4; --accent-soft:#e8f1fb;
+  --border:rgba(28,43,58,0.09); --shadow-xs:0 1px 4px rgba(28,43,58,0.06);
+  --green:#27ae60; --blue:#2980b9; --red:#c0392b; --black:#1a1a1a;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:#fff;color:var(--ink);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+/* Header */
+header{height:54px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 18px;gap:10px;flex-shrink:0;box-shadow:var(--shadow-xs);z-index:200;}
+.logo{font-family:'Fraunces',serif;font-weight:300;font-size:1.1rem;color:var(--ink);display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.logo-mark{width:26px;height:26px;background:var(--ink);border-radius:6px;display:flex;align-items:center;justify-content:center;}
+.logo-mark svg{width:14px;height:14px;}
+.hdiv{width:1px;height:20px;background:var(--border);flex-shrink:0;}
+.tbtn{height:30px;padding:0 11px;border:1px solid var(--border);border-radius:7px;background:#fff;color:var(--ink-mid);font-family:'DM Sans',sans-serif;font-size:0.74rem;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:5px;flex-shrink:0;transition:all .12s;white-space:nowrap;}
+.tbtn:hover{background:var(--mist);border-color:var(--sky);color:var(--ink);}
+.tbtn.active{background:var(--ink);border-color:var(--ink);color:#fff;}
+.rlabel{font-size:0.68rem;font-weight:600;color:var(--ink-light);text-transform:uppercase;letter-spacing:.05em;flex-shrink:0;}
+.rbtn{width:30px;height:30px;border-radius:7px;border:2px solid transparent;cursor:pointer;flex-shrink:0;transition:all .12s;position:relative;outline:none;}
+.rbtn.green{background:var(--green);border-color:#1e8449;}
+.rbtn.blue{background:var(--blue);border-color:#1f618d;}
+.rbtn.red{background:var(--red);border-color:#922b21;}
+.rbtn.black{background:var(--black);border-color:#000;}
+.rbtn.active{transform:scale(1.12);}
+.rbtn.green.active{box-shadow:0 0 0 3px #fff,0 0 0 5px var(--green);}
+.rbtn.blue.active{box-shadow:0 0 0 3px #fff,0 0 0 5px var(--blue);}
+.rbtn.red.active{box-shadow:0 0 0 3px #fff,0 0 0 5px var(--red);}
+.rbtn.black.active{box-shadow:0 0 0 3px #fff,0 0 0 5px #333;}
+.saves{margin-left:auto;display:flex;gap:5px;flex-shrink:0;}
+.sbtn{height:30px;padding:0 13px;border-radius:7px;border:1px solid var(--accent);background:var(--accent);color:#fff;font-family:'DM Sans',sans-serif;font-size:0.74rem;font-weight:600;cursor:pointer;transition:all .12s;}
+.sbtn:hover{background:var(--ink);border-color:var(--ink);}
+.sbtn.sec{background:#fff;color:var(--accent);}
+.sbtn.sec:hover{background:var(--accent-soft);}
+.ubtn{height:30px;padding:0 10px;border:1px solid var(--border);border-radius:7px;background:#fff;color:var(--ink-mid);font-family:'DM Sans',sans-serif;font-size:0.74rem;cursor:pointer;transition:all .12s;flex-shrink:0;display:flex;align-items:center;gap:4px;}
+.ubtn:hover{background:var(--mist);color:var(--ink);}
+
+/* Tips */
+.tips{height:30px;background:var(--accent-soft);border-bottom:1px solid rgba(59,130,196,.14);display:flex;align-items:center;padding:0 18px;gap:16px;flex-shrink:0;overflow:hidden;}
+.tlbl{font-size:0.61rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.09em;flex-shrink:0;}
+.tip{font-size:0.67rem;color:var(--ink-mid);white-space:nowrap;}
+.tip strong{color:var(--ink);font-weight:600;}
+.tsep{color:var(--sky);}
+kbd{background:#fff;border:1px solid var(--frost);border-radius:3px;padding:1px 4px;font-size:.6rem;font-family:monospace;color:var(--ink-mid);}
+
+/* Canvas area */
+.cw{flex:1;position:relative;overflow:hidden;background:#fff;min-height:0;}
+#mc{position:absolute;top:0;left:0;z-index:1;display:block;}
+.map-title{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:20;font-family:'Fraunces',serif;font-weight:300;font-style:italic;font-size:1.2rem;color:var(--ink);background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:9px;padding:4px 18px;text-align:center;outline:none;min-width:170px;box-shadow:var(--shadow-xs);}
+.map-title:focus{border-color:var(--accent);}
+.empty-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;z-index:2;opacity:.22;}
+.eh-i{font-size:3rem;margin-bottom:8px;}
+.eh-t{font-family:'Fraunces',serif;font-weight:300;font-size:.95rem;color:var(--ink);}
+.eh-s{font-size:.69rem;color:var(--ink-mid);margin-top:3px;}
+
+/* Bottom */
+.bot{height:158px;flex-shrink:0;background:#fff;border-top:1px solid var(--border);box-shadow:0 -2px 10px rgba(28,43,58,.06);display:flex;overflow:hidden;}
+.bcol{flex:1;min-width:0;display:flex;flex-direction:column;border-right:1px solid var(--border);}
+.bcol:last-child{border-right:none;}
+.bhead{display:flex;align-items:center;gap:6px;padding:8px 13px 7px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.btitle{font-family:'Fraunces',serif;font-weight:300;font-size:.77rem;color:var(--ink);}
+.bcount{font-size:.6rem;font-weight:700;background:var(--mist);color:var(--ink-mid);padding:1px 6px;border-radius:20px;}
+.bscroll{flex:1;display:flex;align-items:flex-start;gap:7px;padding:8px 10px;overflow-x:auto;overflow-y:hidden;}
+.bscroll::-webkit-scrollbar{height:3px;}
+.bscroll::-webkit-scrollbar-thumb{background:var(--frost);border-radius:3px;}
+.emsg{font-size:.66rem;color:var(--ink-light);white-space:nowrap;align-self:center;font-style:italic;}
+
+/* Lift card */
+.lcard{background:var(--cloud);border:1px solid var(--border);border-radius:9px;padding:7px 10px;min-width:196px;max-width:220px;flex-shrink:0;transition:border-color .12s;}
+.lcard:hover{border-color:var(--sky);}
+.lcard-top{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.lci{width:26px;height:26px;background:var(--ink);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.lci svg{width:15px;height:15px;}
+.lcn{font-weight:600;font-size:.73rem;color:var(--ink);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lcb{font-size:.59rem;background:var(--mist);color:var(--ink-mid);padding:2px 5px;border-radius:20px;font-weight:500;white-space:nowrap;}
+.cdel{background:none;border:none;cursor:pointer;color:var(--frost);font-size:.74rem;padding:0;line-height:1;transition:color .12s;flex-shrink:0;}
+.cdel:hover{color:var(--red);}
+.ltimes{display:flex;align-items:center;gap:4px;}
+.tl{font-size:.59rem;color:var(--ink-light);white-space:nowrap;}
+.ti{flex:1;padding:3px 5px;border:1px solid var(--border);border-radius:5px;font-family:'DM Sans',sans-serif;font-size:.64rem;color:var(--ink);background:#fff;outline:none;}
+.ti:focus{border-color:var(--accent);}
+
+/* Run card */
+.rcard{background:var(--cloud);border:1px solid var(--border);border-radius:9px;padding:7px 10px;min-width:128px;flex-shrink:0;display:flex;flex-direction:column;gap:5px;transition:border-color .12s;}
+.rcard:hover{border-color:var(--sky);}
+.rcard-top{display:flex;align-items:center;gap:5px;}
+.rsw{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.rcn{font-weight:600;font-size:.72rem;color:var(--ink);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rbadge{font-size:.59rem;padding:2px 6px;border-radius:20px;font-weight:700;color:#fff;align-self:flex-start;}
+
+/* Status */
+.sbar{height:22px;background:var(--cloud);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:12px;flex-shrink:0;font-size:.67rem;color:var(--ink-light);}
+.sdot{width:5px;height:5px;border-radius:50%;background:var(--accent);display:inline-block;margin-right:4px;}
+
+/* Modal */
+.mo{display:none;position:fixed;inset:0;background:rgba(28,43,58,.22);backdrop-filter:blur(5px);z-index:1000;align-items:center;justify-content:center;}
+.mo.show{display:flex;}
+.md{background:#fff;border-radius:14px;padding:26px;width:360px;box-shadow:0 20px 60px rgba(0,0,0,.12);animation:mIn .17s cubic-bezier(.22,1,.36,1);}
+@keyframes mIn{from{opacity:0;transform:scale(.95) translateY(-6px)}to{opacity:1;transform:none}}
+.mdt{font-family:'Fraunces',serif;font-weight:300;font-size:1.18rem;color:var(--ink);margin-bottom:16px;}
+.fg{margin-bottom:13px;}
+.fl{display:block;font-size:.7rem;font-weight:600;color:var(--ink-mid);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em;}
+.fi{width:100%;padding:8px 11px;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.83rem;color:var(--ink);background:#fff;outline:none;transition:border-color .12s;}
+.fi:focus{border-color:var(--accent);}
+.ltg{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.lto{padding:9px 5px 7px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;background:#fff;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.65rem;font-weight:500;color:var(--ink-mid);transition:all .12s;}
+.lto:hover{border-color:var(--sky);background:var(--cloud);color:var(--ink);}
+.lto.sel{border-color:var(--ink);background:var(--ink);color:#fff;}
+.lto-icon{width:38px;height:38px;background:var(--mist);border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background .12s;}
+.lto:hover .lto-icon{background:var(--frost);}
+.lto.sel .lto-icon{background:rgba(255,255,255,.15);}
+.lto-wide{grid-column:1/-1;flex-direction:row;justify-content:center;gap:10px;padding:8px 14px;}
+.lto-wide .lto-icon{width:52px;height:32px;border-radius:8px;}
+.ma{display:flex;gap:7px;justify-content:flex-end;margin-top:18px;}
+.bc{padding:7px 14px;border-radius:7px;border:1.5px solid var(--border);background:#fff;color:var(--ink-mid);font-family:'DM Sans',sans-serif;font-size:.78rem;cursor:pointer;font-weight:500;}
+.bc:hover{background:var(--mist);}
+.bok{padding:7px 18px;border-radius:7px;border:none;background:var(--ink);color:#fff;font-family:'DM Sans',sans-serif;font-size:.78rem;cursor:pointer;font-weight:600;}
+.bok:hover{background:var(--ink-mid);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 14 14" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round">
+        <line x1="2" y1="12" x2="12" y2="3"/>
+        <circle cx="8.5" cy="6.5" r="1.5" fill="white" stroke="none"/>
+        <line x1="5" y1="10" x2="3" y2="12"/>
+      </svg>
+    </div>
+    Ski Map Maker
+  </div>
+  <div class="hdiv"></div>
+  <button class="tbtn" id="btn-select" onclick="setMode('select')">↖ Select</button>
+  <div class="hdiv"></div>
+  <button class="tbtn" id="btn-lift" onclick="setMode('lift')">
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="1" y1="10" x2="12" y2="3"/><line x1="7" y1="5.8" x2="7" y2="8.5"/><line x1="4.5" y1="8.5" x2="9.5" y2="8.5"/></svg>
+    Lift
+  </button>
+  <div class="hdiv"></div>
+  <span class="rlabel">Runs</span>
+  <button class="rbtn green" id="btn-green" onclick="setMode('run-green')" title="Green – Easy"></button>
+  <button class="rbtn blue"  id="btn-blue"  onclick="setMode('run-blue')"  title="Blue – Intermediate"></button>
+  <button class="rbtn red"   id="btn-red"   onclick="setMode('run-red')"   title="Red – Difficult"></button>
+  <button class="rbtn black" id="btn-black" onclick="setMode('run-black')" title="Black – Expert"></button>
+  <div class="hdiv"></div>
+  <button class="ubtn" onclick="undoLast()">↩ Undo</button>
+  <div class="saves">
+    <button class="sbtn sec" onclick="saveMap('jpeg')">JPEG</button>
+    <button class="sbtn"     onclick="saveMap('png')">PNG</button>
+  </div>
+</header>
+
+<div class="tips">
+  <span class="tlbl">Tips</span>
+  <span class="tip"><strong>Lift:</strong> click to add points — double-click last point to finish</span>
+  <span class="tsep">·</span>
+  <span class="tip"><strong>Run:</strong> click &amp; drag to draw freehand curves</span>
+  <span class="tsep">·</span>
+  <span class="tip"><kbd>L</kbd> lift &nbsp;<kbd>G</kbd><kbd>B</kbd><kbd>R</kbd><kbd>K</kbd> runs &nbsp;<kbd>Esc</kbd> cancel &nbsp;<kbd>Ctrl+Z</kbd> undo</span>
+</div>
+
+<div style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;">
+  <div class="cw" id="cw">
+    <input class="map-title" id="mapTitle" type="text" value="My Ski Resort" placeholder="Map title…"/>
+    <canvas id="mc"></canvas>
+    <div class="empty-hint" id="eh">
+      <div class="eh-i">🏔</div>
+      <div class="eh-t">Your mountain awaits</div>
+      <div class="eh-s">Choose a tool above and start drawing</div>
+    </div>
+  </div>
+
+  <div class="bot">
+    <div class="bcol">
+      <div class="bhead"><span class="btitle">Ski Lifts</span><span class="bcount" id="liftCount">0</span></div>
+      <div class="bscroll" id="liftList"><span class="emsg" id="liftEmpty">No lifts yet — use the Lift tool</span></div>
+    </div>
+    <div class="bcol">
+      <div class="bhead"><span class="btitle">Runs</span><span class="bcount" id="runCount">0</span></div>
+      <div class="bscroll" id="runList"><span class="emsg" id="runEmpty">No runs yet — pick a colour and draw</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="sbar">
+  <span><span class="sdot"></span>Mode: <strong id="statusMode">Select</strong></span>
+  <span id="statusHint">Pick a tool to begin</span>
+</div>
+
+<!-- Lift modal -->
+<div class="mo" id="liftModal">
+  <div class="md">
+    <div class="mdt">Add Ski Lift</div>
+    <div class="fg">
+      <label class="fl">Name</label>
+      <input class="fi" id="liftName" type="text" placeholder="e.g. Summit Express"/>
+    </div>
+    <div class="fg">
+      <label class="fl">Type</label>
+      <div class="ltg" id="ltypeGrid">
+        <!-- Populated by JS so icons are consistent with canvas drawing -->
+      </div>
+    </div>
+    <div class="ma">
+      <button class="bc" onclick="cancelLift()">Cancel</button>
+      <button class="bok" onclick="confirmLift()">Add Lift</button>
+    </div>
+  </div>
+</div>
+
+<!-- Run modal -->
+<div class="mo" id="runModal">
+  <div class="md">
+    <div class="mdt">Name This Run</div>
+    <div class="fg">
+      <label class="fl">Run Name</label>
+      <input class="fi" id="runName" type="text" placeholder="e.g. Powder Bowl"/>
+    </div>
+    <div class="ma">
+      <button class="bc" onclick="cancelRun()">Skip</button>
+      <button class="bok" onclick="confirmRun()">Add Run</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  ICON DRAWING — all icons drawn with canvas 2D API
+//  fn(ctx, cx, cy, R)  — R = circle radius
+//  Everything is white (drawn on dark circle)
+// ═══════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════
+//  ICON SYSTEM
+//  - tbar + chairlift: rendered from provided SVG files
+//  - button/gondola/tramway: drawn directly with canvas 2D
+//  All icon fns: (ctx, cx, cy, R) — white on dark circle
+// ═══════════════════════════════════════════════════════
+
+// Exact SVG source from uploaded files, with colours replaced to white
+const TBAR_SVG_SRC = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+<path fill="white" d="M237.329,91.6c-0.56,0-1.129-0.079-1.692-0.245L16.983,26.956c-3.168-0.934-4.981-4.259-4.048-7.429s4.26-4.979,7.429-4.047l218.653,64.397c3.17,0.934,4.981,4.259,4.049,7.429C242.298,89.911,239.913,91.6,237.329,91.6z"/>
+<path fill="white" d="M223.249,208.249c0-7.622-6.182-13.804-13.805-13.804c-6.803,0-12.443,4.927-13.58,11.403c-10.452,3.277-35.803,6.853-72.925,6.853c-37.122,0-62.472-3.575-72.925-6.851c-1.138-6.479-6.779-11.405-13.583-11.405c-7.623,0-13.804,6.182-13.804,13.805c0,6.92,5.096,12.632,11.734,13.632c6.962,4.296,17.287,6.528,27.488,8.104c16.207,2.504,37.903,3.883,61.089,3.883s44.882-1.379,61.089-3.883c10.201-1.575,20.527-3.808,27.488-8.104C218.154,220.881,223.249,215.168,223.249,208.249z"/>
+<path fill="white" d="M104.227,125.992c0,4.006,3.249,7.255,7.255,7.255h22.914c4.007,0,7.255-3.249,7.255-7.255V86.666c0-4.007-3.248-7.255-7.255-7.255h-22.914c-4.006,0-7.255,3.249-7.255,7.255V125.992z"/>
+<rect fill="white" x="113.277" y="130.486" width="19.324" height="87.427"/>
+<path fill="white" d="M124.32,110.91c-25.827,0-46.838-17.702-46.838-39.459c0-12.466,6.739-23.927,18.487-31.442l7.169,11.208c-7.85,5.021-12.352,12.396-12.352,20.234c0,14.422,15.043,26.154,33.533,26.154V110.91z"/>
+<circle fill="white" cx="94.809" cy="45.271" r="12.254"/>
+</svg>`;
+
+const CHAIRLIFT_SVG_SRC = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+<path fill="white" d="M42.599 37.17c1.839-.602 2.829-2.557 2.224-4.381l-1.333.426c.364 1.093-.242 2.272-1.332 2.633l-35.03 11.841.451 1.311 35.02-11.83zm-32.256-20.462c1.922-.557 3.022-2.567 2.461-4.479-.562-1.911-2.582-3.004-4.51-2.447-1.927.557-3.039 2.567-2.466 4.479.562 1.912 2.577 3.005 4.515 2.447zm-1.487 5.003c-1.917-3.626 3.584-6.564 5.61-3.047l3.95 7.451 7.521-2.121c1.244-.35 2.963.995 2.963 2.578l.042 10.619c.012 2.632-3.93 2.643-3.93-.021-.012-2.47-.077-7.734-.077-7.734l-7.848 2.337c-1.718.492-3.139-.359-3.81-1.616l-4.421-8.446zm12.144 1.683v-22.394h-2v22.82zm-15.756 3.157c-1.079-2.108 1.707-3.506 2.786-1.398l3.397 6.598c.738 1.365 2.181 2.295 3.844 2.295.517 0 1.001-.132 1.475-.23l4.28-1.244c2.269-.678 3.149 2.292.86 2.961l-4.502 1.298c-.671.208-1.398.316-2.147.316-2.896 0-5.401-1.627-6.634-4.008l-3.359-6.588z"/>
+</svg>`;
+
+// Offscreen canvases keyed by lift type — populated during init
+const iconOffscreen = {};
+
+// Render one SVG string into an offscreen canvas of given size, returns Promise<HTMLCanvasElement>
+function svgToCanvas(svgStr, w, h) {
+  return new Promise(resolve => {
+    const encoded = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgStr);
+    const img = new Image(w, h);
+    img.onload = () => {
+      const oc = document.createElement('canvas');
+      oc.width = w; oc.height = h;
+      oc.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(oc);
+    };
+    img.onerror = () => resolve(null);
+    img.src = encoded;
+  });
+}
+
+// Canvas-drawn icons (white on transparent) ──────────────────────────────────
+
+function drawIconButton(c, cx, cy, R) {
+  // Simple: slanted cable + vertical hanger + circle platter at bottom
+  const lw = R * 0.12;
+  c.save(); c.strokeStyle='white'; c.fillStyle='white'; c.lineCap='round'; c.lineJoin='round';
+  // Slanted cable across top
+  c.lineWidth=lw*1.5;
+  c.beginPath(); c.moveTo(cx-R*.9,cy-R*.35); c.lineTo(cx+R*.9,cy-R*.78); c.stroke();
+  // Vertical hanger from cable midpoint
+  c.lineWidth=lw*1.2;
+  c.beginPath(); c.moveTo(cx,cy-R*.57); c.lineTo(cx,cy+R*.28); c.stroke();
+  // Circle platter at bottom of hanger
+  c.lineWidth=lw*1.3;
+  c.beginPath(); c.arc(cx, cy+R*.44, R*.22, 0, Math.PI*2); c.stroke();
+  c.restore();
+}
+
+function drawIconGondola(c, cx, cy, R) {
+  const lw = R * 0.12;
+  c.save(); c.strokeStyle='white'; c.fillStyle='white'; c.lineCap='round'; c.lineJoin='round';
+  // Horizontal cable
+  c.lineWidth=lw*1.5; c.beginPath(); c.moveTo(cx-R*.9,cy-R*.6); c.lineTo(cx+R*.9,cy-R*.6); c.stroke();
+  // Grip block
+  c.fillRect(cx-R*.13,cy-R*.67,R*.26,R*.18);
+  // Drop
+  c.lineWidth=lw*1.1; c.beginPath(); c.moveTo(cx,cy-R*.49); c.lineTo(cx,cy-R*.2); c.stroke();
+  // Cabin
+  c.lineWidth=lw*1.5;
+  const cw=R*1.5,ch=R*.98,cx1=cx-cw/2,cy1=cy-R*.18,cr=R*.18;
+  c.beginPath(); c.moveTo(cx1+cr,cy1); c.lineTo(cx1+cw-cr,cy1); c.arcTo(cx1+cw,cy1,cx1+cw,cy1+cr,cr);
+  c.lineTo(cx1+cw,cy1+ch-cr); c.arcTo(cx1+cw,cy1+ch,cx1+cw-cr,cy1+ch,cr);
+  c.lineTo(cx1+cr,cy1+ch); c.arcTo(cx1,cy1+ch,cx1,cy1+ch-cr,cr);
+  c.lineTo(cx1,cy1+cr); c.arcTo(cx1,cy1,cx1+cr,cy1,cr); c.closePath(); c.stroke();
+  // 2 windows
+  const ww=R*.44,wh=R*.4,wy=cy1+ch*.25,gap=(cw-ww*2)/3;
+  c.lineWidth=lw*.9; c.fillStyle='rgba(255,255,255,.25)';
+  [cx1+gap,cx1+gap*2+ww].forEach(wx=>{c.beginPath();c.roundRect(wx,wy,ww,wh,R*.07);c.fill();c.stroke();});
+  c.restore();
+}
+
+function drawIconTramway(c, cx, cy, R) {
+  const lw = R * 0.12;
+  c.save(); c.strokeStyle='white'; c.fillStyle='white'; c.lineCap='round'; c.lineJoin='round';
+  // Horizontal cable
+  c.lineWidth=lw*1.5; c.beginPath(); c.moveTo(cx-R*.9,cy-R*.64); c.lineTo(cx+R*.9,cy-R*.64); c.stroke();
+  // Two grip wheels
+  c.beginPath(); c.arc(cx-R*.35,cy-R*.64,R*.12,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(cx+R*.35,cy-R*.64,R*.12,0,Math.PI*2); c.fill();
+  // Drop
+  c.lineWidth=lw*1.1; c.beginPath(); c.moveTo(cx,cy-R*.52); c.lineTo(cx,cy-R*.2); c.stroke();
+  // Cabin — constrained to circle width so it doesn't stretch
+  c.lineWidth=lw*1.4;
+  const cw=R*1.58, ch=R*.88, cx2=cx-cw/2, cy2=cy-R*.18, cr2=R*.15;
+  c.beginPath(); c.moveTo(cx2+cr2,cy2); c.lineTo(cx2+cw-cr2,cy2); c.arcTo(cx2+cw,cy2,cx2+cw,cy2+cr2,cr2);
+  c.lineTo(cx2+cw,cy2+ch-cr2); c.arcTo(cx2+cw,cy2+ch,cx2+cw-cr2,cy2+ch,cr2);
+  c.lineTo(cx2+cr2,cy2+ch); c.arcTo(cx2,cy2+ch,cx2,cy2+ch-cr2,cr2);
+  c.lineTo(cx2,cy2+cr2); c.arcTo(cx2,cy2,cx2+cr2,cy2,cr2); c.closePath(); c.stroke();
+  // 3 windows — evenly spaced within cabin
+  const ww2=R*.3,wh2=R*.34,wy2=cy2+ch*.24,gap2=(cw-ww2*3)/4;
+  c.lineWidth=lw*.8; c.fillStyle='rgba(255,255,255,.25)';
+  [cx2+gap2, cx2+gap2*2+ww2, cx2+gap2*3+ww2*2].forEach(wx2=>{
+    c.beginPath(); c.roundRect(wx2,wy2,ww2,wh2,R*.05); c.fill(); c.stroke();
+  });
+  c.restore();
+}
+
+// Draw an icon using its offscreen canvas (for tbar/chairlift)
+function drawFromOffscreen(c, cx, cy, R, key) {
+  const oc = iconOffscreen[key];
+  if (!oc) return;
+  // Draw maintaining aspect ratio, centred, fitting within diameter
+  const D = R * 2;
+  const aspect = oc.width / oc.height;
+  let dw, dh;
+  if (aspect >= 1) { dw = D; dh = D / aspect; }
+  else             { dh = D; dw = D * aspect; }
+  c.drawImage(oc, cx - dw/2, cy - dh/2, dw, dh);
+}
+
+// The ICONS dispatch table — called inside a circle clip
+const ICONS = {
+  button:    (c,cx,cy,R) => drawIconButton(c,cx,cy,R),
+  tbar:      (c,cx,cy,R) => drawFromOffscreen(c,cx,cy,R,'tbar'),
+  chairlift: (c,cx,cy,R) => drawFromOffscreen(c,cx,cy,R,'chairlift'),
+  gondola:   (c,cx,cy,R) => drawIconGondola(c,cx,cy,R),
+  tramway:   (c,cx,cy,R) => drawIconTramway(c,cx,cy,R),
+};
+
+const LIFT_INFO = {
+  button:   { label:'Button Lift' },
+  tbar:     { label:'T-Bar' },
+  chairlift:{ label:'Chairlift' },
+  gondola:  { label:'Gondola' },
+  tramway:  { label:'Aerial Tramway' },
+};
+
+const RUN_INFO = {
+  'run-green':{ hex:'#27ae60', label:'Easy',         badge:'Easy' },
+  'run-blue': { hex:'#2980b9', label:'Intermediate', badge:'Intermed.' },
+  'run-red':  { hex:'#c0392b', label:'Difficult',    badge:'Difficult' },
+  'run-black':{ hex:'#1a1a1a', label:'Expert',       badge:'Expert' },
+};
+
+const HINTS = {
+  select:     'Click a tool to begin',
+  lift:       'Click to place points — double-click the last point to finish',
+  'run-green':'Click & drag to draw a green (easy) run',
+  'run-blue': 'Click & drag to draw a blue (intermediate) run',
+  'run-red':  'Click & drag to draw a red (difficult) run',
+  'run-black':'Click & drag to draw a black (expert) run',
+};
+
+// Build lift type picker in modal using mini canvas previews
+function buildTypePicker() {
+  const grid = document.getElementById('ltypeGrid');
+  const types = [
+    { key:'button',    label:'Button Lift', wide:false },
+    { key:'tbar',      label:'T-Bar',       wide:false },
+    { key:'chairlift', label:'Chairlift',   wide:false },
+    { key:'gondola',   label:'Gondola',     wide:false },
+    { key:'tramway',   label:'Aerial Tramway', wide:true },
+  ];
+  types.forEach(({ key, label, wide }) => {
+    const div = document.createElement('div');
+    div.className = 'lto' + (key === 'chairlift' ? ' sel' : '') + (wide ? ' lto-wide' : '');
+    div.dataset.type = key;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'lto-icon';
+
+    // Mini SVG canvas for picker
+    const cv = document.createElement('canvas');
+    const sz = wide ? 50 : 36;
+    cv.width = cv.height = sz;
+    cv.style.cssText = 'width:100%;height:100%;';
+    const ctx2 = cv.getContext('2d');
+
+    // Draw dark circle background
+    ctx2.fillStyle = '#1c2b3a';
+    ctx2.beginPath(); ctx2.arc(sz/2, sz/2, sz/2-1, 0, Math.PI*2); ctx2.fill();
+    // Draw icon
+    ICONS[key](ctx2, sz/2, sz/2, (sz/2-1)*0.88);
+
+    wrap.appendChild(cv);
+    div.appendChild(wrap);
+    div.appendChild(document.createTextNode(label));
+
+    div.addEventListener('click', () => {
+      document.querySelectorAll('.lto').forEach(o => o.classList.remove('sel'));
+      div.classList.add('sel');
+      selType = key;
+    });
+    grid.appendChild(div);
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  State
+// ═══════════════════════════════════════════════════════
+let mode='select', lifts=[], runs=[], undoStack=[];
+let drawing=false, liftPts=[], runPts=[];
+let pendingLift=null, pendingRun=null;
+let selType='chairlift', snapIndicator=null;
+let uid=0; const nid=()=>++uid;
+
+// ═══════════════════════════════════════════════════════
+//  Canvas
+// ═══════════════════════════════════════════════════════
+const canvas=document.getElementById('mc');
+const ctx=canvas.getContext('2d');
+const wrap=document.getElementById('cw');
+
+function resize(){
+  const r=wrap.getBoundingClientRect();
+  canvas.width=Math.floor(r.width);
+  canvas.height=Math.floor(r.height);
+  redraw();
+}
+new ResizeObserver(resize).observe(wrap);
+
+// ═══════════════════════════════════════════════════════
+//  Mode
+// ═══════════════════════════════════════════════════════
+const BTN={'select':'select','lift':'lift','run-green':'green','run-blue':'blue','run-red':'red','run-black':'black'};
+function setMode(m){
+  mode=m; liftPts=[]; drawing=false; snapIndicator=null;
+  document.querySelectorAll('.tbtn,.rbtn').forEach(b=>b.classList.remove('active'));
+  const bid=BTN[m]; if(bid){const el=document.getElementById('btn-'+bid);if(el)el.classList.add('active');}
+  document.getElementById('statusMode').textContent=(bid||m).charAt(0).toUpperCase()+(bid||m).slice(1);
+  document.getElementById('statusHint').textContent=HINTS[m]||'';
+  canvas.style.cursor=m==='select'?'default':'crosshair';
+  redraw();
+}
+
+// ═══════════════════════════════════════════════════════
+//  Snap
+// ═══════════════════════════════════════════════════════
+function snapPoints(){
+  const pts=[];
+  lifts.forEach(l=>l.points.forEach(p=>pts.push({x:p[0],y:p[1]})));
+  return pts;
+}
+function snap(x,y,r=18){
+  let best=null,bd=r;
+  snapPoints().forEach(p=>{const d=Math.hypot(p.x-x,p.y-y);if(d<bd){bd=d;best=p;}});
+  return best?[best.x,best.y]:[x,y];
+}
+
+// ═══════════════════════════════════════════════════════
+//  Events
+// ═══════════════════════════════════════════════════════
+function xy(e){const r=canvas.getBoundingClientRect();const s=e.touches?e.touches[0]:e;return[s.clientX-r.left,s.clientY-r.top];}
+
+canvas.addEventListener('mousedown',e=>{
+  if(e.button!==0)return;
+  let[x,y]=xy(e);
+  if(mode==='lift'){drawing=true;if(!liftPts.length)liftPts=[[x,y]];else liftPts.push([x,y]);redraw();hideHint();}
+  else if(mode.startsWith('run')){drawing=true;[x,y]=snap(x,y);runPts=[[x,y]];hideHint();}
+});
+
+canvas.addEventListener('mousemove',e=>{
+  const[x,y]=xy(e);
+  if(mode==='lift'&&liftPts.length){
+    redraw();
+    const last=liftPts[liftPts.length-1];
+    ctx.save();ctx.setLineDash([5,5]);ctx.strokeStyle='rgba(28,43,58,.2)';ctx.lineWidth=1.8;
+    ctx.beginPath();ctx.moveTo(last[0],last[1]);ctx.lineTo(x,y);ctx.stroke();ctx.restore();
+    return;
+  }
+  if(mode.startsWith('run')&&!drawing){
+    const sp=snap(x,y,20);
+    snapIndicator=(sp[0]!==x||sp[1]!==y)?{x:sp[0],y:sp[1]}:null;
+    redraw();return;
+  }
+  if(!drawing)return;
+  if(mode.startsWith('run')){
+    const[sx,sy]=snap(x,y,18);
+    snapIndicator=(sx!==x||sy!==y)?{x:sx,y:sy}:null;
+    runPts.push([sx,sy]);
+    redraw();
+    strokeRun(runPts,RUN_INFO[mode].hex,5);
+    if(snapIndicator)drawSnap(snapIndicator.x,snapIndicator.y);
+  }
+});
+
+canvas.addEventListener('mouseup',()=>{
+  snapIndicator=null;
+  if(!drawing)return;
+  if(mode.startsWith('run')){
+    if(runPts.length>4){
+      const thin=runPts.filter((_,i)=>i%2===0);
+      pendingRun={points:thin,grade:mode,color:RUN_INFO[mode].hex,width:5};
+      drawing=false;runPts=[];showRunModal();
+    }else{drawing=false;runPts=[];}
+  }else{drawing=false;}
+});
+
+canvas.addEventListener('dblclick',e=>{
+  if(mode==='lift'&&liftPts.length>=2){
+    const pts=[...liftPts];if(pts.length>2)pts.pop();
+    pendingLift={points:pts};liftPts=[];drawing=false;redraw();showLiftModal();
+  }
+});
+
+// ═══════════════════════════════════════════════════════
+//  Draw helpers
+// ═══════════════════════════════════════════════════════
+function liftMid(pts){
+  if(pts.length===2)return[(pts[0][0]+pts[1][0])/2,(pts[0][1]+pts[1][1])/2];
+  const segs=[];let tot=0;
+  for(let i=0;i<pts.length-1;i++){const d=Math.hypot(pts[i+1][0]-pts[i][0],pts[i+1][1]-pts[i][1]);segs.push(d);tot+=d;}
+  let rem=tot/2,mx=pts[0][0],my=pts[0][1];
+  for(let i=0;i<segs.length;i++){if(rem<=segs[i]){const t=rem/segs[i];mx=pts[i][0]+(pts[i+1][0]-pts[i][0])*t;my=pts[i][1]+(pts[i+1][1]-pts[i][1])*t;break;}rem-=segs[i];}
+  return[mx,my];
+}
+
+function drawCable(c,pts){
+  if(pts.length<2)return;
+  c.save();c.strokeStyle='#1c2b3a';c.lineWidth=2;c.lineCap='round';c.lineJoin='round';c.setLineDash([]);
+  c.beginPath();c.moveTo(pts[0][0],pts[0][1]);
+  for(let i=1;i<pts.length;i++)c.lineTo(pts[i][0],pts[i][1]);
+  c.stroke();c.restore();
+}
+
+function drawCircle(c,mx,my,R,type){
+  // White halo separates circle from cable
+  c.save();c.strokeStyle='white';c.lineWidth=4.5;
+  c.beginPath();c.arc(mx,my,R+1,0,Math.PI*2);c.stroke();c.restore();
+  // Dark circle
+  c.save();c.fillStyle='#1c2b3a';
+  c.beginPath();c.arc(mx,my,R,0,Math.PI*2);c.fill();c.restore();
+  // Icon clipped inside
+  const fn=ICONS[type];
+  if(fn){c.save();c.beginPath();c.arc(mx,my,R-0.5,0,Math.PI*2);c.clip();fn(c,mx,my,R*0.88);c.restore();}
+}
+
+function drawLiftLabel(c,mx,my,R,name){
+  c.save();c.font='500 10px "DM Sans",sans-serif';
+  const tw=c.measureText(name).width;
+  c.fillStyle='rgba(28,43,58,.86)';
+  rrect(c,mx-tw/2-6,my-R-19,tw+12,14,5);c.fill();
+  c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';
+  c.fillText(name,mx,my-R-12);c.restore();
+}
+
+function drawLift(l){
+  drawCable(ctx,l.points);
+  const[mx,my]=liftMid(l.points);
+  drawCircle(ctx,mx,my,13,l.type);
+  if(l.name)drawLiftLabel(ctx,mx,my,13,l.name);
+}
+
+function strokeRun(c_or_pts,colorOrCtx,width){
+  // Overloaded: can be called as strokeRun(pts,color,w) using global ctx
+  // or strokeRun(c, pts, color, w) for offscreen
+  let c,pts,color,w;
+  if(Array.isArray(c_or_pts)){c=ctx;pts=c_or_pts;color=colorOrCtx;w=width;}
+  else{c=c_or_pts;pts=colorOrCtx;color=width;w=arguments[3]||5;}
+  if(pts.length<2)return;
+  c.save();c.strokeStyle=color;c.lineWidth=w||5;c.lineCap='round';c.lineJoin='round';c.globalAlpha=0.86;
+  c.beginPath();c.moveTo(pts[0][0],pts[0][1]);
+  for(let i=1;i<pts.length-1;i++){const mx=(pts[i][0]+pts[i+1][0])/2,my=(pts[i][1]+pts[i+1][1])/2;c.quadraticCurveTo(pts[i][0],pts[i][1],mx,my);}
+  c.lineTo(pts[pts.length-1][0],pts[pts.length-1][1]);
+  c.stroke();c.restore();
+}
+
+function drawRunLabel(c,name,x,y,color){
+  c.save();c.font='600 10px "DM Sans",sans-serif';
+  const tw=c.measureText(name).width;
+  c.fillStyle=color;rrect(c,x-tw/2-4,y-9,tw+8,13,4);c.fill();
+  c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';
+  c.fillText(name,x,y-3);c.restore();
+}
+
+function drawSnap(x,y){
+  ctx.save();ctx.strokeStyle='rgba(59,130,196,.75)';ctx.lineWidth=2;ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.arc(x,y,10,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle='rgba(59,130,196,.12)';ctx.fill();ctx.restore();
+}
+
+function rrect(c,x,y,w,h,r){
+  c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.arcTo(x+w,y,x+w,y+r,r);c.lineTo(x+w,y+h-r);
+  c.arcTo(x+w,y+h,x+w-r,y+h,r);c.lineTo(x+r,y+h);c.arcTo(x,y+h,x,y+h-r,r);c.lineTo(x,y+r);
+  c.arcTo(x,y,x+r,y,r);c.closePath();
+}
+
+function hideHint(){document.getElementById('eh').style.display='none';}
+
+// ═══════════════════════════════════════════════════════
+//  Label & obstacle collision system
+// ═══════════════════════════════════════════════════════
+let placedRects = [];
+
+function resetLabels() { placedRects = []; }
+
+function rectsOverlap(ax,ay,aw,ah, bx,by,bw,bh, margin=2) {
+  return ax-margin < bx+bw && ax+aw+margin > bx &&
+         ay-margin < by+bh && ay+ah+margin > by;
+}
+
+function isClear(lx, ly, w, h) {
+  return !placedRects.some(r => rectsOverlap(lx,ly,w,h, r.x,r.y,r.w,r.h));
+}
+
+function reserveRect(x, y, w, h) { placedRects.push({x,y,w,h}); }
+
+// Place a label near anchor (ax, ay), searching outward in an angle sweep.
+// The label pill is drawn and its rect registered. Returns placed {lx,ly,w,h}.
+function drawLabel(c, text, ax, ay, font, bgColor, textColor, padX, h, radius) {
+  c.save(); c.font = font;
+  const tw = c.measureText(text).width;
+  c.restore();
+  const w = tw + padX * 2;
+
+  // Search outward from preferred offset. Try increasing radii, all angles.
+  const ANGLES = [270,225,315,180,0,135,45,200,340,160,20]; // degrees, prefer up
+  let lx = ax - w/2, ly = ay;
+  let placed = false;
+
+  for (let r = 4; r <= 90 && !placed; r += 7) {
+    for (const deg of ANGLES) {
+      const rad = deg * Math.PI / 180;
+      const px = ax + Math.cos(rad) * r - w/2;
+      const py = ay + Math.sin(rad) * r - h/2;
+      if (isClear(px, py, w, h)) {
+        lx = px; ly = py; placed = true; break;
+      }
+    }
+  }
+
+  placedRects.push({x:lx, y:ly, w, h});
+  c.save();
+  c.fillStyle = bgColor;
+  rrect(c, lx, ly, w, h, radius); c.fill();
+  c.fillStyle = textColor; c.textAlign='left'; c.textBaseline='middle';
+  c.fillText(text, lx+padX, ly+h/2);
+  c.restore();
+}
+
+// ═══════════════════════════════════════════════════════
+//  Lift circle overlap resolution
+//  If two lift circles would overlap, nudge them apart
+// ═══════════════════════════════════════════════════════
+function resolvedLiftPositions() {
+  const MIN_DIST = 32; // 2 × circle radius (13) + 6px gap
+  // Work on copies so we don't mutate lift data
+  const positions = lifts.map(l => {
+    const [mx, my] = liftMid(l.points);
+    return { mx, my, l };
+  });
+
+  // Iterative repulsion (max 20 passes)
+  for (let pass = 0; pass < 20; pass++) {
+    let moved = false;
+    for (let i = 0; i < positions.length; i++) {
+      for (let j = i+1; j < positions.length; j++) {
+        const a = positions[i], b = positions[j];
+        const dx = b.mx - a.mx, dy = b.my - a.my;
+        const dist = Math.hypot(dx, dy);
+        if (dist < MIN_DIST && dist > 0) {
+          const push = (MIN_DIST - dist) / 2 + 1;
+          const nx = dx/dist, ny = dy/dist;
+          a.mx -= nx*push; a.my -= ny*push;
+          b.mx += nx*push; b.my += ny*push;
+          moved = true;
+        }
+      }
+    }
+    if (!moved) break;
+  }
+  return positions;
+}
+
+// ═══════════════════════════════════════════════════════
+//  Redraw — layers: runs → cables → circles → labels
+// ═══════════════════════════════════════════════════════
+function redraw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  resetLabels();
+
+  // Layer 1: run strokes
+  runs.forEach(r => strokeRun(r.points, r.color, r.width));
+
+  // Layer 2: lift cables
+  lifts.forEach(l => drawCable(ctx, l.points));
+  if (liftPts.length > 1) drawCable(ctx, liftPts);
+
+  // Layer 3: lift circles at resolved (non-overlapping) positions
+  const resolved = resolvedLiftPositions();
+  // Reserve circles as obstacles before placing any labels
+  resolved.forEach(({mx, my}) => reserveRect(mx-15, my-15, 30, 30));
+  resolved.forEach(({mx, my, l}) => drawCircle(ctx, mx, my, 13, l.type));
+
+  // Layer 4: run labels
+  runs.forEach(r => {
+    if (!r.name) return;
+    const mid = r.points[Math.floor(r.points.length/2)];
+    drawLabel(ctx, r.name, mid[0], mid[1],
+      '600 10px "DM Sans",sans-serif', r.color, '#fff', 5, 14, 4);
+  });
+
+  // Layer 5: lift labels (above circles, after run labels registered)
+  resolved.forEach(({mx, my, l}) => {
+    if (!l.name) return;
+    // Preferred anchor: just above the circle
+    drawLabel(ctx, l.name, mx, my - 15,
+      '500 10px "DM Sans",sans-serif', 'rgba(28,43,58,.88)', '#fff', 6, 15, 5);
+  });
+
+  if (snapIndicator) drawSnap(snapIndicator.x, snapIndicator.y);
+}
+
+// ═══════════════════════════════════════════════════════
+//  Modals
+// ═══════════════════════════════════════════════════════
+function showLiftModal(){document.getElementById('liftName').value='';document.getElementById('liftModal').classList.add('show');setTimeout(()=>document.getElementById('liftName').focus(),80);}
+function cancelLift(){pendingLift=null;document.getElementById('liftModal').classList.remove('show');redraw();}
+function confirmLift(){
+  if(!pendingLift)return;
+  const name=document.getElementById('liftName').value.trim()||'Unnamed Lift';
+  const lift={id:nid(),name,type:selType,points:pendingLift.points,openTime:'08:30',closeTime:'16:30'};
+  lifts.push(lift);undoStack.push({kind:'lift',id:lift.id});
+  pendingLift=null;document.getElementById('liftModal').classList.remove('show');
+  redraw();renderLifts();
+}
+document.getElementById('liftName').addEventListener('keydown',e=>{if(e.key==='Enter')confirmLift();});
+
+function showRunModal(){document.getElementById('runName').value='';document.getElementById('runModal').classList.add('show');setTimeout(()=>document.getElementById('runName').focus(),80);}
+function cancelRun(){pendingRun=null;document.getElementById('runModal').classList.remove('show');redraw();}
+function confirmRun(){
+  if(!pendingRun)return;
+  const name=document.getElementById('runName').value.trim()||'';
+  const run={id:nid(),name,grade:pendingRun.grade,color:pendingRun.color,points:pendingRun.points,width:pendingRun.width};
+  runs.push(run);undoStack.push({kind:'run',id:run.id});
+  pendingRun=null;document.getElementById('runModal').classList.remove('show');
+  redraw();renderRuns();
+}
+document.getElementById('runName').addEventListener('keydown',e=>{if(e.key==='Enter')confirmRun();});
+
+// ═══════════════════════════════════════════════════════
+//  Bottom lists
+// ═══════════════════════════════════════════════════════
+function makeLiftIconSVG(type){
+  const cv=document.createElement('canvas');cv.width=cv.height=26;
+  const c=cv.getContext('2d');
+  c.fillStyle='#1c2b3a';c.beginPath();c.arc(13,13,12,0,Math.PI*2);c.fill();
+  const fn=ICONS[type];if(fn){c.save();c.beginPath();c.arc(13,13,11.5,0,Math.PI*2);c.clip();fn(c,13,13,11*0.88);c.restore();}
+  const img=document.createElement('img');img.src=cv.toDataURL();img.style.cssText='width:26px;height:26px;display:block;';
+  return img;
+}
+
+function renderLifts(){
+  const list=document.getElementById('liftList');
+  list.querySelectorAll('.lcard').forEach(c=>c.remove());
+  document.getElementById('liftEmpty').style.display=lifts.length?'none':'';
+  document.getElementById('liftCount').textContent=lifts.length;
+  lifts.forEach(l=>{
+    const info=LIFT_INFO[l.type]||LIFT_INFO.chairlift;
+    const d=document.createElement('div');d.className='lcard';
+    const top=document.createElement('div');top.className='lcard-top';
+    const iconWrap=document.createElement('span');iconWrap.className='lci';iconWrap.style.cssText='overflow:hidden;padding:0;';
+    iconWrap.appendChild(makeLiftIconSVG(l.type));
+    const nm=document.createElement('span');nm.className='lcn';nm.title=l.name;nm.textContent=l.name;
+    const badge=document.createElement('span');badge.className='lcb';badge.textContent=info.label;
+    const del=document.createElement('button');del.className='cdel';del.textContent='✕';del.onclick=()=>delLift(l.id);
+    top.append(iconWrap,nm,badge,del);
+    const times=document.createElement('div');times.className='ltimes';
+    times.innerHTML=`<span class="tl">Opens</span><input class="ti" type="time" value="${l.openTime}" onchange="setLiftTime(${l.id},'openTime',this.value)"/><span class="tl">Closes</span><input class="ti" type="time" value="${l.closeTime}" onchange="setLiftTime(${l.id},'closeTime',this.value)"/>`;
+    d.append(top,times);list.appendChild(d);
+  });
+}
+function delLift(id){lifts=lifts.filter(l=>l.id!==id);redraw();renderLifts();}
+function setLiftTime(id,f,v){const l=lifts.find(x=>x.id===id);if(l)l[f]=v;}
+
+function renderRuns(){
+  const list=document.getElementById('runList');
+  list.querySelectorAll('.rcard').forEach(c=>c.remove());
+  document.getElementById('runEmpty').style.display=runs.length?'none':'';
+  document.getElementById('runCount').textContent=runs.length;
+  runs.forEach(r=>{
+    const g=RUN_INFO[r.grade]||RUN_INFO['run-green'];
+    const d=document.createElement('div');d.className='rcard';
+    const del=document.createElement('button');del.className='cdel';del.textContent='✕';del.onclick=()=>delRun(r.id);
+    d.innerHTML=`<div class="rcard-top"><span class="rsw" style="background:${r.color}"></span><span class="rcn">${r.name||'Unnamed Run'}</span></div><span class="rbadge" style="background:${r.color}">${g.badge}</span>`;
+    d.querySelector('.rcard-top').appendChild(del);
+    list.appendChild(d);
+  });
+}
+function delRun(id){runs=runs.filter(r=>r.id!==id);redraw();renderRuns();}
+
+// ═══════════════════════════════════════════════════════
+//  Undo
+// ═══════════════════════════════════════════════════════
+function undoLast(){
+  const last=undoStack.pop();if(!last)return;
+  if(last.kind==='lift')lifts=lifts.filter(l=>l.id!==last.id);
+  if(last.kind==='run')runs=runs.filter(r=>r.id!==last.id);
+  redraw();renderLifts();renderRuns();
+}
+
+// ═══════════════════════════════════════════════════════
+//  Save — renders everything fresh to an offscreen canvas
+// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+//  Save — 2× hi-res export with compact 2-column footer
+// ═══════════════════════════════════════════════════════
+function saveMap(fmt){
+  const title = document.getElementById('mapTitle').value || 'Ski Map';
+  const SCALE = 2; // hi-res multiplier
+
+  // ── Footer sizing (at 1× logical px) ──────────────────
+  const FPAD=12, KEY_H=26, HDR_H=18, LIFT_ROW=20;
+  const numCols = lifts.length > 4 ? 2 : 1;
+  const numRows = Math.ceil(lifts.length / numCols);
+  const liftTableH = lifts.length > 0 ? HDR_H + numRows * LIFT_ROW + 6 : 0;
+  const footerH = FPAD + KEY_H + (lifts.length > 0 ? 6 + liftTableH : 0) + FPAD;
+
+  // ── Create hi-res canvas ───────────────────────────────
+  const logW = canvas.width, logH = canvas.height;
+  const oc = document.createElement('canvas');
+  oc.width  = logW  * SCALE;
+  oc.height = (logH + footerH) * SCALE;
+  const c = oc.getContext('2d');
+  c.scale(SCALE, SCALE); // draw at logical px — canvas auto-scales to 2×
+
+  // ── 1. Map white background ────────────────────────────
+  c.fillStyle = '#fff';
+  c.fillRect(0, 0, logW, logH);
+
+  // ── 2. Run strokes ─────────────────────────────────────
+  runs.forEach(r => {
+    if (r.points.length < 2) return;
+    c.save(); c.strokeStyle=r.color; c.lineWidth=r.width||5;
+    c.lineCap='round'; c.lineJoin='round'; c.globalAlpha=0.86;
+    c.beginPath(); c.moveTo(r.points[0][0], r.points[0][1]);
+    for (let i=1; i<r.points.length-1; i++) {
+      const mx=(r.points[i][0]+r.points[i+1][0])/2, my=(r.points[i][1]+r.points[i+1][1])/2;
+      c.quadraticCurveTo(r.points[i][0],r.points[i][1],mx,my);
+    }
+    c.lineTo(r.points[r.points.length-1][0], r.points[r.points.length-1][1]);
+    c.stroke(); c.restore();
+  });
+
+  // ── 3. Lift cables ─────────────────────────────────────
+  lifts.forEach(l => { if (l.points.length >= 2) drawCable(c, l.points); });
+
+  // ── 4. Lift circles at resolved positions ──────────────
+  resetLabels();
+  const res = resolvedLiftPositions();
+  res.forEach(({mx,my}) => reserveRect(mx-15, my-15, 30, 30));
+  res.forEach(({mx,my,l}) => drawCircle(c, mx, my, 13, l.type));
+
+  // ── 5. Run labels ──────────────────────────────────────
+  runs.forEach(r => {
+    if (!r.name) return;
+    const mid = r.points[Math.floor(r.points.length/2)];
+    drawLabel(c, r.name, mid[0], mid[1],
+      '600 10px DM Sans,sans-serif', r.color, '#fff', 5, 14, 4);
+  });
+
+  // ── 6. Lift labels ─────────────────────────────────────
+  res.forEach(({mx,my,l}) => {
+    if (!l.name) return;
+    drawLabel(c, l.name, mx, my-15,
+      '500 10px DM Sans,sans-serif', 'rgba(28,43,58,.88)', '#fff', 6, 15, 5);
+  });
+
+  // ── 7. Map title ───────────────────────────────────────
+  c.save();
+  c.font = '300 italic 19px Fraunces,Georgia,serif';
+  c.fillStyle = '#1c2b3a'; c.textAlign='center'; c.textBaseline='top';
+  c.fillText(title, logW/2, 10);
+  c.restore();
+
+  // ── 8. Footer background ───────────────────────────────
+  c.fillStyle = '#f7f9fc';
+  c.fillRect(0, logH, logW, footerH);
+  c.strokeStyle = 'rgba(28,43,58,.09)'; c.lineWidth=1;
+  c.beginPath(); c.moveTo(0,logH+.5); c.lineTo(logW,logH+.5); c.stroke();
+
+  let fy = logH + FPAD;
+
+  // ── 9. Run difficulty key ──────────────────────────────
+  c.save();
+  c.font='700 8px DM Sans,sans-serif'; c.fillStyle='#3d5a73';
+  c.textBaseline='middle'; c.textAlign='left';
+  c.fillText('RUNS', 14, fy+KEY_H/2);
+  let kx = 52;
+  [['#27ae60','Green – Easy'],['#2980b9','Blue – Intermediate'],
+   ['#c0392b','Red – Difficult'],['#1a1a1a','Black – Expert']].forEach(([col,lbl]) => {
+    c.fillStyle=col; c.beginPath(); c.arc(kx+4,fy+KEY_H/2,4,0,Math.PI*2); c.fill();
+    c.fillStyle='#3d5a73'; c.font='8px DM Sans,sans-serif';
+    c.fillText(lbl, kx+11, fy+KEY_H/2);
+    kx += c.measureText(lbl).width + 24;
+  });
+  c.restore();
+  fy += KEY_H;
+
+  // ── 10. Lift table (2-column if >4 lifts) ─────────────
+  if (lifts.length > 0) {
+    c.strokeStyle='rgba(28,43,58,.07)'; c.lineWidth=1;
+    c.beginPath(); c.moveTo(14,fy); c.lineTo(logW-14,fy); c.stroke();
+    fy += 6;
+
+    const colW    = numCols === 2 ? (logW - 28) / 2 : logW - 28;
+    const colPad  = 14;
+
+    for (let col = 0; col < numCols; col++) {
+      const ox = colPad + col * (colW + colPad); // x origin of this column
+      const cN  = ox + 18;
+      const cT  = ox + colW * 0.44;
+      const cO  = ox + colW * 0.66;
+      const cC  = ox + colW * 0.84;
+
+      // Column header
+      c.save();
+      c.font='700 7px DM Sans,sans-serif'; c.fillStyle='#7a9ab5';
+      c.textBaseline='middle'; c.textAlign='left';
+      c.fillText('LIFT',   ox,  fy+HDR_H/2);
+      c.fillText('TYPE',   cT,  fy+HDR_H/2);
+      c.fillText('OPENS',  cO,  fy+HDR_H/2);
+      c.fillText('CLOSES', cC,  fy+HDR_H/2);
+      c.restore();
+
+      // Lift rows for this column
+      const start = col * numRows;
+      const end   = Math.min(start + numRows, lifts.length);
+      for (let i = start; i < end; i++) {
+        const l   = lifts[i];
+        const row = i - start;
+        const ry  = fy + HDR_H + row * LIFT_ROW;
+        const rm  = ry + LIFT_ROW/2;
+
+        if (row % 2 === 1) {
+          c.fillStyle='rgba(28,43,58,.025)';
+          c.fillRect(ox - 4, ry, colW + 8, LIFT_ROW);
+        }
+
+        // Icon circle
+        c.save(); c.fillStyle='#1c2b3a';
+        const icx = ox + 7;
+        c.beginPath(); c.arc(icx,rm,7,0,Math.PI*2); c.fill();
+        const fnI=ICONS[l.type];
+        if(fnI){c.save();c.beginPath();c.arc(icx,rm,6.5,0,Math.PI*2);c.clip();fnI(c,icx,rm,6*.88);c.restore();}
+        c.restore();
+
+        // Text
+        c.save(); c.textBaseline='middle'; c.textAlign='left';
+        c.font='600 8px DM Sans,sans-serif'; c.fillStyle='#1c2b3a';
+        c.fillText(l.name, cN, rm);
+        c.font='7.5px DM Sans,sans-serif'; c.fillStyle='#3d5a73';
+        c.fillText((LIFT_INFO[l.type]||LIFT_INFO.chairlift).label, cT, rm);
+        c.fillStyle='#1c2b3a';
+        c.fillText(l.openTime||'—',  cO, rm);
+        c.fillText(l.closeTime||'—', cC, rm);
+        c.restore();
+      }
+    }
+
+    // Vertical divider between columns if 2-col
+    if (numCols === 2) {
+      const divX = colPad + colW + colPad/2;
+      c.strokeStyle='rgba(28,43,58,.07)'; c.lineWidth=1;
+      c.beginPath(); c.moveTo(divX, fy); c.lineTo(divX, fy+HDR_H+numRows*LIFT_ROW); c.stroke();
+    }
+  }
+
+  // ── 11. Download ───────────────────────────────────────
+  const a = document.createElement('a');
+  a.href = oc.toDataURL(fmt==='png'?'image/png':'image/jpeg', 0.95);
+  a.download = title.replace(/\s+/g,'-') + '.' + fmt;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+// ═══════════════════════════════════════════════════════
+//  Keyboard
+// ═══════════════════════════════════════════════════════
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT')return;
+  if((e.ctrlKey||e.metaKey)&&e.key==='z'){undoLast();return;}
+  ({Escape:()=>{liftPts=[];drawing=false;snapIndicator=null;redraw();},
+    l:()=>setMode('lift'),g:()=>setMode('run-green'),b:()=>setMode('run-blue'),
+    r:()=>setMode('run-red'),k:()=>setMode('run-black'),s:()=>setMode('select')})[e.key]?.();
+});
+
+// ═══════════════════════════════════════════════════════
+//  Init — preload SVG icons, then build UI
+// ═══════════════════════════════════════════════════════
+async function init() {
+  // Render each SVG into a 200×200 offscreen canvas (square, enough detail)
+  const svgDefs = {
+    tbar:      { src: TBAR_SVG_SRC,      w: 256, h: 256 },
+    chairlift: { src: CHAIRLIFT_SVG_SRC, w: 50,  h: 50  },
+  };
+  await Promise.all(Object.entries(svgDefs).map(([key, {src, w, h}]) =>
+    svgToCanvas(src, w, h).then(oc => { if(oc) iconOffscreen[key] = oc; })
+  ));
+  buildTypePicker();
+  resize();
+  setMode('select');
+}
+init();
+</script>
+</body>
+</html>
