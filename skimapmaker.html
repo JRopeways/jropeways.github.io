@@ -685,38 +685,121 @@ function drawLabel(c, text, ax, ay, font, bgColor, textColor, padX, h, radius) {
 //  Lift circle overlap resolution
 //  If two lift circles would overlap, nudge them apart
 // ═══════════════════════════════════════════════════════
-function resolvedLiftPositions() {
-  const MIN_DIST = 32; // 2 × circle radius (13) + 6px gap
-  // Work on copies so we don't mutate lift data
-  const positions = lifts.map(l => {
-    const [mx, my] = liftMid(l.points);
-    return { mx, my, l };
-  });
+// ═══════════════════════════════════════════════════════
+//  Lift icon+label placement along the cable
+//
+//  For each lift we sample candidate positions along the
+//  cable (starting at midpoint, then stepping outward in
+//  both directions). At each candidate we check whether
+//  the combined icon-circle + label pill bounding box is
+//  clear of all already-placed obstacles. The first clear
+//  position wins. This keeps icon and label together and
+//  prevents crowding along parallel lifts.
+// ═══════════════════════════════════════════════════════
 
-  // Iterative repulsion (max 20 passes)
-  for (let pass = 0; pass < 20; pass++) {
-    let moved = false;
-    for (let i = 0; i < positions.length; i++) {
-      for (let j = i+1; j < positions.length; j++) {
-        const a = positions[i], b = positions[j];
-        const dx = b.mx - a.mx, dy = b.my - a.my;
-        const dist = Math.hypot(dx, dy);
-        if (dist < MIN_DIST && dist > 0) {
-          const push = (MIN_DIST - dist) / 2 + 1;
-          const nx = dx/dist, ny = dy/dist;
-          a.mx -= nx*push; a.my -= ny*push;
-          b.mx += nx*push; b.my += ny*push;
-          moved = true;
-        }
-      }
-    }
-    if (!moved) break;
+// Return arc-length parametric samples along a polyline.
+// t=0 → start, t=1 → end. Returns {x,y}.
+function samplePolyline(pts, t) {
+  if (pts.length === 1) return { x: pts[0][0], y: pts[0][1] };
+  const segs = [];
+  let total = 0;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const d = Math.hypot(pts[i+1][0]-pts[i][0], pts[i+1][1]-pts[i][1]);
+    segs.push(d); total += d;
   }
-  return positions;
+  let rem = t * total;
+  for (let i = 0; i < segs.length; i++) {
+    if (rem <= segs[i] || i === segs.length - 1) {
+      const frac = segs[i] > 0 ? Math.min(rem / segs[i], 1) : 0;
+      return {
+        x: pts[i][0] + (pts[i+1][0] - pts[i][0]) * frac,
+        y: pts[i][1] + (pts[i+1][1] - pts[i][1]) * frac,
+      };
+    }
+    rem -= segs[i];
+  }
+  return { x: pts[pts.length-1][0], y: pts[pts.length-1][1] };
+}
+
+// For a lift, compute a combined bounding box for circle (R=13) + label pill
+// positioned above the circle. Returns {x,y,w,h} of the union.
+function liftBBox(c, mx, my, name, font) {
+  const R = 13;
+  // Circle bbox
+  const cx = mx - R - 2, cy = my - R - 2, cw = (R+2)*2, ch = (R+2)*2;
+  if (!name) return { x: cx, y: cy, w: cw, h: ch };
+  // Label pill above circle
+  c.save(); c.font = font;
+  const tw = c.measureText(name).width;
+  c.restore();
+  const lw = tw + 12, lh = 15;
+  const lx = mx - lw/2, ly = my - R - 2 - lh - 2;
+  // Union
+  const ux = Math.min(cx, lx);
+  const uy = Math.min(cy, ly);
+  const ux2 = Math.max(cx+cw, lx+lw);
+  const uy2 = Math.max(cy+ch, ly+lh);
+  return { x: ux, y: uy, w: ux2-ux, h: uy2-uy };
+}
+
+// Find a non-overlapping position for a lift's icon+label along its cable.
+// Returns {t, mx, my} where t ∈ [0,1] is the arc position.
+function findLiftPlacement(c, l) {
+  const LABEL_FONT = '500 10px "DM Sans",sans-serif';
+  const STEPS = 20; // candidate positions to try each side of centre
+  const candidates = [0.5]; // start at midpoint
+  for (let s = 1; s <= STEPS; s++) {
+    const step = s / (STEPS * 2);
+    candidates.push(0.5 + step); // toward end
+    candidates.push(0.5 - step); // toward start
+  }
+  // Clamp to [0.08, 0.92] to avoid endpoints
+  for (const t of candidates) {
+    const tc = Math.max(0.08, Math.min(0.92, t));
+    const { x: mx, y: my } = samplePolyline(l.points, tc);
+    const bb = liftBBox(c, mx, my, l.name, LABEL_FONT);
+    if (isClear(bb.x, bb.y, bb.w, bb.h)) {
+      return { t: tc, mx, my };
+    }
+  }
+  // Fallback: midpoint regardless
+  const { x: mx, y: my } = samplePolyline(l.points, 0.5);
+  return { t: 0.5, mx, my };
+}
+
+// Draw a lift's icon circle + label pill as a single unit at (mx, my).
+// Registers their combined bbox as occupied.
+function drawLiftUnit(c, mx, my, type, name) {
+  const R = 13;
+  const LABEL_FONT = '500 10px "DM Sans",sans-serif';
+
+  // Draw circle
+  drawCircle(c, mx, my, R, type);
+
+  // Draw label pill directly above circle
+  if (name) {
+    c.save(); c.font = LABEL_FONT;
+    const tw = c.measureText(name).width;
+    c.restore();
+    const lw = tw + 12, lh = 15;
+    const lx = mx - lw/2;
+    const ly = my - R - 2 - lh;
+    c.save();
+    c.fillStyle = 'rgba(28,43,58,.88)';
+    rrect(c, lx, ly, lw, lh, 5); c.fill();
+    c.fillStyle = '#fff'; c.textAlign = 'left'; c.textBaseline = 'middle';
+    c.font = LABEL_FONT;
+    c.fillText(name, lx + 6, ly + lh/2);
+    c.restore();
+  }
+
+  // Register combined bbox
+  const bb = liftBBox(c, mx, my, name, LABEL_FONT);
+  reserveRect(bb.x, bb.y, bb.w, bb.h);
 }
 
 // ═══════════════════════════════════════════════════════
-//  Redraw — layers: runs → cables → circles → labels
+//  Redraw — layers: runs → cables → lift units → run labels
 // ═══════════════════════════════════════════════════════
 function redraw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -729,26 +812,18 @@ function redraw(){
   lifts.forEach(l => drawCable(ctx, l.points));
   if (liftPts.length > 1) drawCable(ctx, liftPts);
 
-  // Layer 3: lift circles at resolved (non-overlapping) positions
-  const resolved = resolvedLiftPositions();
-  // Reserve circles as obstacles before placing any labels
-  resolved.forEach(({mx, my}) => reserveRect(mx-15, my-15, 30, 30));
-  resolved.forEach(({mx, my, l}) => drawCircle(ctx, mx, my, 13, l.type));
+  // Layer 3: lift icon+label units placed along cable to avoid overlap
+  lifts.forEach(l => {
+    const { mx, my } = findLiftPlacement(ctx, l);
+    drawLiftUnit(ctx, mx, my, l.type, l.name);
+  });
 
-  // Layer 4: run labels
+  // Layer 4: run labels (after lift obstacles registered)
   runs.forEach(r => {
     if (!r.name) return;
     const mid = r.points[Math.floor(r.points.length/2)];
     drawLabel(ctx, r.name, mid[0], mid[1],
       '600 10px "DM Sans",sans-serif', r.color, '#fff', 5, 14, 4);
-  });
-
-  // Layer 5: lift labels (above circles, after run labels registered)
-  resolved.forEach(({mx, my, l}) => {
-    if (!l.name) return;
-    // Preferred anchor: just above the circle
-    drawLabel(ctx, l.name, mx, my - 15,
-      '500 10px "DM Sans",sans-serif', 'rgba(28,43,58,.88)', '#fff', 6, 15, 5);
   });
 
   if (snapIndicator) drawSnap(snapIndicator.x, snapIndicator.y);
@@ -846,55 +921,64 @@ function undoLast(){
 //  Save — renders everything fresh to an offscreen canvas
 // ═══════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════
-//  Save — 2× hi-res export with compact 2-column footer
+//  Save — 2× hi-res, footer = 1/3 of total image height
 // ═══════════════════════════════════════════════════════
 function saveMap(fmt){
   const title = document.getElementById('mapTitle').value || 'Ski Map';
-  const SCALE = 2; // hi-res multiplier
+  const SCALE = 2;
 
-  // ── Footer sizing (at 1× logical px) ──────────────────
-  const FPAD=12, KEY_H=26, HDR_H=18, LIFT_ROW=20;
-  const numCols = lifts.length > 4 ? 2 : 1;
-  const numRows = Math.ceil(lifts.length / numCols);
-  const liftTableH = lifts.length > 0 ? HDR_H + numRows * LIFT_ROW + 6 : 0;
-  const footerH = FPAD + KEY_H + (lifts.length > 0 ? 6 + liftTableH : 0) + FPAD;
+  // Map area is 2/3 of total, footer is 1/3
+  const logW   = canvas.width;
+  const logMap = canvas.height;            // the actual drawn map height
+  const logFtr = Math.round(logMap / 2);  // footer = half map = 1/3 total
+  const logH   = logMap + logFtr;
 
-  // ── Create hi-res canvas ───────────────────────────────
-  const logW = canvas.width, logH = canvas.height;
+  // Lift table sizing — fit into footer
+  const FPAD = 10, KEY_H = 24, HDR_H = 16, LIFT_ROW = 18;
+  const availH   = logFtr - FPAD*2 - KEY_H - 8; // space for lift table
+  const numCols  = lifts.length > 5 ? 2 : 1;
+  const numRows  = Math.ceil(lifts.length / numCols);
+  // Scale row height to fit if needed
+  const rowH = lifts.length > 0
+    ? Math.min(LIFT_ROW, Math.floor((availH - HDR_H - 4) / numRows))
+    : LIFT_ROW;
+
+  // Create hi-res canvas
   const oc = document.createElement('canvas');
-  oc.width  = logW  * SCALE;
-  oc.height = (logH + footerH) * SCALE;
+  oc.width  = logW * SCALE;
+  oc.height = logH * SCALE;
   const c = oc.getContext('2d');
-  c.scale(SCALE, SCALE); // draw at logical px — canvas auto-scales to 2×
+  c.scale(SCALE, SCALE);
 
-  // ── 1. Map white background ────────────────────────────
+  // ── 1. Map white background ──
   c.fillStyle = '#fff';
-  c.fillRect(0, 0, logW, logH);
+  c.fillRect(0, 0, logW, logMap);
 
-  // ── 2. Run strokes ─────────────────────────────────────
+  // ── 2. Run strokes ──
   runs.forEach(r => {
     if (r.points.length < 2) return;
     c.save(); c.strokeStyle=r.color; c.lineWidth=r.width||5;
     c.lineCap='round'; c.lineJoin='round'; c.globalAlpha=0.86;
     c.beginPath(); c.moveTo(r.points[0][0], r.points[0][1]);
     for (let i=1; i<r.points.length-1; i++) {
-      const mx=(r.points[i][0]+r.points[i+1][0])/2, my=(r.points[i][1]+r.points[i+1][1])/2;
-      c.quadraticCurveTo(r.points[i][0],r.points[i][1],mx,my);
+      const mx2=(r.points[i][0]+r.points[i+1][0])/2, my2=(r.points[i][1]+r.points[i+1][1])/2;
+      c.quadraticCurveTo(r.points[i][0],r.points[i][1],mx2,my2);
     }
     c.lineTo(r.points[r.points.length-1][0], r.points[r.points.length-1][1]);
     c.stroke(); c.restore();
   });
 
-  // ── 3. Lift cables ─────────────────────────────────────
+  // ── 3. Lift cables ──
   lifts.forEach(l => { if (l.points.length >= 2) drawCable(c, l.points); });
 
-  // ── 4. Lift circles at resolved positions ──────────────
+  // ── 4. Lift icon+label units (same placement logic as redraw) ──
   resetLabels();
-  const res = resolvedLiftPositions();
-  res.forEach(({mx,my}) => reserveRect(mx-15, my-15, 30, 30));
-  res.forEach(({mx,my,l}) => drawCircle(c, mx, my, 13, l.type));
+  lifts.forEach(l => {
+    const { mx, my } = findLiftPlacement(c, l);
+    drawLiftUnit(c, mx, my, l.type, l.name);
+  });
 
-  // ── 5. Run labels ──────────────────────────────────────
+  // ── 5. Run labels ──
   runs.forEach(r => {
     if (!r.name) return;
     const mid = r.points[Math.floor(r.points.length/2)];
@@ -902,97 +986,90 @@ function saveMap(fmt){
       '600 10px DM Sans,sans-serif', r.color, '#fff', 5, 14, 4);
   });
 
-  // ── 6. Lift labels ─────────────────────────────────────
-  res.forEach(({mx,my,l}) => {
-    if (!l.name) return;
-    drawLabel(c, l.name, mx, my-15,
-      '500 10px DM Sans,sans-serif', 'rgba(28,43,58,.88)', '#fff', 6, 15, 5);
-  });
-
-  // ── 7. Map title ───────────────────────────────────────
+  // ── 6. Map title ──
   c.save();
-  c.font = '300 italic 19px Fraunces,Georgia,serif';
-  c.fillStyle = '#1c2b3a'; c.textAlign='center'; c.textBaseline='top';
+  c.font = '300 italic 18px Fraunces,Georgia,serif';
+  c.fillStyle='#1c2b3a'; c.textAlign='center'; c.textBaseline='top';
   c.fillText(title, logW/2, 10);
   c.restore();
 
-  // ── 8. Footer background ───────────────────────────────
+  // ── 7. Footer background ──
   c.fillStyle = '#f7f9fc';
-  c.fillRect(0, logH, logW, footerH);
-  c.strokeStyle = 'rgba(28,43,58,.09)'; c.lineWidth=1;
-  c.beginPath(); c.moveTo(0,logH+.5); c.lineTo(logW,logH+.5); c.stroke();
+  c.fillRect(0, logMap, logW, logFtr);
+  c.strokeStyle='rgba(28,43,58,.09)'; c.lineWidth=1;
+  c.beginPath(); c.moveTo(0,logMap+.5); c.lineTo(logW,logMap+.5); c.stroke();
 
-  let fy = logH + FPAD;
+  let fy = logMap + FPAD;
 
-  // ── 9. Run difficulty key ──────────────────────────────
+  // ── 8. Run key (horizontal row) ──
   c.save();
   c.font='700 8px DM Sans,sans-serif'; c.fillStyle='#3d5a73';
   c.textBaseline='middle'; c.textAlign='left';
-  c.fillText('RUNS', 14, fy+KEY_H/2);
-  let kx = 52;
+  c.fillText('RUNS', 12, fy + KEY_H/2);
+  let kx = 50;
   [['#27ae60','Green – Easy'],['#2980b9','Blue – Intermediate'],
    ['#c0392b','Red – Difficult'],['#1a1a1a','Black – Expert']].forEach(([col,lbl]) => {
-    c.fillStyle=col; c.beginPath(); c.arc(kx+4,fy+KEY_H/2,4,0,Math.PI*2); c.fill();
+    c.fillStyle=col; c.beginPath(); c.arc(kx+4, fy+KEY_H/2, 4, 0, Math.PI*2); c.fill();
     c.fillStyle='#3d5a73'; c.font='8px DM Sans,sans-serif';
     c.fillText(lbl, kx+11, fy+KEY_H/2);
-    kx += c.measureText(lbl).width + 24;
+    kx += c.measureText(lbl).width + 22;
   });
   c.restore();
-  fy += KEY_H;
+  fy += KEY_H + 4;
 
-  // ── 10. Lift table (2-column if >4 lifts) ─────────────
+  // ── 9. Lift table ──
   if (lifts.length > 0) {
     c.strokeStyle='rgba(28,43,58,.07)'; c.lineWidth=1;
-    c.beginPath(); c.moveTo(14,fy); c.lineTo(logW-14,fy); c.stroke();
-    fy += 6;
+    c.beginPath(); c.moveTo(12,fy); c.lineTo(logW-12,fy); c.stroke();
+    fy += 4;
 
-    const colW    = numCols === 2 ? (logW - 28) / 2 : logW - 28;
-    const colPad  = 14;
+    const usableW = logW - 24;
+    const colW    = numCols === 2 ? (usableW - 8) / 2 : usableW;
 
     for (let col = 0; col < numCols; col++) {
-      const ox = colPad + col * (colW + colPad); // x origin of this column
+      const ox  = 12 + col * (colW + 8);
       const cN  = ox + 18;
-      const cT  = ox + colW * 0.44;
-      const cO  = ox + colW * 0.66;
-      const cC  = ox + colW * 0.84;
+      const cT  = ox + colW * 0.42;
+      const cO  = ox + colW * 0.65;
+      const cC  = ox + colW * 0.82;
 
       // Column header
       c.save();
       c.font='700 7px DM Sans,sans-serif'; c.fillStyle='#7a9ab5';
       c.textBaseline='middle'; c.textAlign='left';
-      c.fillText('LIFT',   ox,  fy+HDR_H/2);
-      c.fillText('TYPE',   cT,  fy+HDR_H/2);
-      c.fillText('OPENS',  cO,  fy+HDR_H/2);
-      c.fillText('CLOSES', cC,  fy+HDR_H/2);
+      c.fillText('LIFT',   ox,  fy + HDR_H/2);
+      c.fillText('TYPE',   cT,  fy + HDR_H/2);
+      c.fillText('OPENS',  cO,  fy + HDR_H/2);
+      c.fillText('CLOSES', cC,  fy + HDR_H/2);
       c.restore();
 
-      // Lift rows for this column
       const start = col * numRows;
       const end   = Math.min(start + numRows, lifts.length);
       for (let i = start; i < end; i++) {
         const l   = lifts[i];
         const row = i - start;
-        const ry  = fy + HDR_H + row * LIFT_ROW;
-        const rm  = ry + LIFT_ROW/2;
+        const ry  = fy + HDR_H + row * rowH;
+        const rm  = ry + rowH / 2;
 
         if (row % 2 === 1) {
           c.fillStyle='rgba(28,43,58,.025)';
-          c.fillRect(ox - 4, ry, colW + 8, LIFT_ROW);
+          c.fillRect(ox-3, ry, colW+6, rowH);
         }
 
-        // Icon circle
-        c.save(); c.fillStyle='#1c2b3a';
         const icx = ox + 7;
-        c.beginPath(); c.arc(icx,rm,7,0,Math.PI*2); c.fill();
-        const fnI=ICONS[l.type];
-        if(fnI){c.save();c.beginPath();c.arc(icx,rm,6.5,0,Math.PI*2);c.clip();fnI(c,icx,rm,6*.88);c.restore();}
+        c.save(); c.fillStyle='#1c2b3a';
+        c.beginPath(); c.arc(icx, rm, 6, 0, Math.PI*2); c.fill();
+        const fnI = ICONS[l.type];
+        if (fnI) {
+          c.save(); c.beginPath(); c.arc(icx,rm,5.5,0,Math.PI*2); c.clip();
+          fnI(c, icx, rm, 5.5*0.88); c.restore();
+        }
         c.restore();
 
-        // Text
         c.save(); c.textBaseline='middle'; c.textAlign='left';
-        c.font='600 8px DM Sans,sans-serif'; c.fillStyle='#1c2b3a';
+        c.font='600 7.5px DM Sans,sans-serif'; c.fillStyle='#1c2b3a';
         c.fillText(l.name, cN, rm);
-        c.font='7.5px DM Sans,sans-serif'; c.fillStyle='#3d5a73';
+        c.font='7px DM Sans,sans-serif'; c.fillStyle='#3d5a73';
         c.fillText((LIFT_INFO[l.type]||LIFT_INFO.chairlift).label, cT, rm);
         c.fillStyle='#1c2b3a';
         c.fillText(l.openTime||'—',  cO, rm);
@@ -1001,15 +1078,15 @@ function saveMap(fmt){
       }
     }
 
-    // Vertical divider between columns if 2-col
+    // Vertical divider between columns
     if (numCols === 2) {
-      const divX = colPad + colW + colPad/2;
+      const divX = 12 + colW + 4;
       c.strokeStyle='rgba(28,43,58,.07)'; c.lineWidth=1;
-      c.beginPath(); c.moveTo(divX, fy); c.lineTo(divX, fy+HDR_H+numRows*LIFT_ROW); c.stroke();
+      c.beginPath(); c.moveTo(divX, fy); c.lineTo(divX, fy+HDR_H+numRows*rowH); c.stroke();
     }
   }
 
-  // ── 11. Download ───────────────────────────────────────
+  // ── 10. Download ──
   const a = document.createElement('a');
   a.href = oc.toDataURL(fmt==='png'?'image/png':'image/jpeg', 0.95);
   a.download = title.replace(/\s+/g,'-') + '.' + fmt;
